@@ -1,0 +1,1 @@
+Window_Manager_Sinapse
