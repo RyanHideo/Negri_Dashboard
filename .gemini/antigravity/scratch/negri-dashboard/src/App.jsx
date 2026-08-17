@@ -5,10 +5,9 @@ import { createAppTheme } from './theme';
 import Header from './components/Header';
 import CCM1Page from './pages/CCM1Page';
 import CCM2Page from './pages/CCM2Page';
-import QuadroPage from './pages/QuadroPage';
 import MotoresPage from './pages/MotoresPage';
 
-const TAB_LABELS = ['CCM 1', 'CCM 2', 'Quadro', 'Motores'];
+const TAB_LABELS = ['CCM 1', 'CCM 2', 'Motores'];
 
 function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -46,8 +45,6 @@ function App() {
       case 1:
         return <CCM2Page />;
       case 2:
-        return <QuadroPage />;
-      case 3:
         return <MotoresPage />;
       default:
         return <CCM1Page />;
