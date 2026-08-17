@@ -62,6 +62,20 @@ export const ccm1Data = {
     total: 200,
     unidade: 'kVA',
   },
+  potenciaVSI: {
+    potencia1: {
+      nome: 'Potência 1',
+      valor: 45.8,
+      maximo: 100,
+      unidade: 'kW',
+    },
+    potencia2: {
+      nome: 'Potência 2',
+      valor: 67.3,
+      maximo: 100,
+      unidade: 'kW',
+    },
+  },
 };
 
 // ---------- CCM 2 ----------
@@ -123,6 +137,20 @@ export const ccm2Data = {
     valor: 70.5,
     total: 200,
     unidade: 'kVA',
+  },
+  potenciaVSI: {
+    potencia1: {
+      nome: 'Potência 1',
+      valor: 32.5,
+      maximo: 100,
+      unidade: 'kW',
+    },
+    potencia2: {
+      nome: 'Potência 2',
+      valor: 48.2,
+      maximo: 100,
+      unidade: 'kW',
+    },
   },
 };
 

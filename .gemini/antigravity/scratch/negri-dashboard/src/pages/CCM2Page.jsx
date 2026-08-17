@@ -1,8 +1,10 @@
 import React, { useRef } from 'react';
 import { Box, Typography, Chip, useTheme, IconButton, alpha } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
-import { ccm2Data, getCargaMotoresByCCM } from '../data/mockData';
+import { ccm2Data, semaforoData, truckCounterData, getCargaMotoresByCCM } from '../data/mockData';
 import { glassCardSx } from '../theme';
+import Semaphore from '../components/Semaphore';
+import TruckCounter from '../components/TruckCounter';
 import DataCard from '../components/DataCard';
 import DonutChart from '../components/DonutChart';
 import GaugeChart from '../components/GaugeChart';
@@ -58,22 +60,54 @@ export default function CCM2Page() {
           </Box>
         </Box>
 
-        {/* Conteúdo principal - sem semáforo/contador, gráficos maiores */}
+        {/* Conteúdo principal */}
         <Box
           sx={{
             flex: 1,
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' },
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '200px 1fr 1fr 1fr' },
             gridTemplateRows: { xs: 'auto', md: '1fr 1fr' },
             gap: 2,
             minHeight: 0,
           }}
         >
+          {/* Semáforo */}
+          <Box
+            sx={{
+              ...glassCardSx(theme),
+              p: 2,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gridRow: { md: '1' },
+            }}
+          >
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 1, fontWeight: 600, textTransform: 'uppercase' }}>
+              Semáforo
+            </Typography>
+            <Semaphore estado={semaforoData.estado} />
+          </Box>
+
+          {/* TruckCounter */}
+          <Box
+            sx={{
+              ...glassCardSx(theme),
+              p: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gridRow: { md: '2' },
+            }}
+          >
+            <TruckCounter contagem={truckCounterData.contagem} meta={truckCounterData.meta} ultimoPulso={truckCounterData.ultimoPulso} />
+          </Box>
+
           {/* Donut Chart - Carga */}
           <Box
             sx={{
               ...glassCardSx(theme),
-              p: 3,
+              p: 2,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -86,7 +120,7 @@ export default function CCM2Page() {
           <Box
             sx={{
               ...glassCardSx(theme),
-              p: 3,
+              p: 2,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -100,52 +134,12 @@ export default function CCM2Page() {
             />
           </Box>
 
-          {/* Resumo rápido */}
-          <Box
-            sx={{
-              ...glassCardSx(theme),
-              p: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              gap: 2,
-            }}
-          >
-            <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
-              Resumo
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Potência</Typography>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {ccm2Data.potencia.ativa} {ccm2Data.potencia.unidade}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Fator de Potência</Typography>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {ccm2Data.fatorPotencia.valor}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Temperatura</Typography>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {ccm2Data.temperatura.valor} {ccm2Data.temperatura.unidade}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Consumo</Typography>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {ccm2Data.consumoTotal.valor} {ccm2Data.consumoTotal.unidade}
-              </Typography>
-            </Box>
-          </Box>
-
           {/* Gráfico de barras - Carga dos Motores */}
           <Box
             sx={{
               ...glassCardSx(theme),
               p: 2,
-              gridColumn: { xs: '1 / -1' },
+              gridColumn: { sm: '1 / -1', md: '2 / -1' },
               minHeight: { xs: 250, md: 0 },
             }}
           >
@@ -187,6 +181,7 @@ export default function CCM2Page() {
           gap: 2,
         }}
       >
+        {/* Header da seção */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Box>
             <Typography variant="h5" color="text.primary" sx={{ fontWeight: 700 }}>
@@ -201,6 +196,7 @@ export default function CCM2Page() {
           </IconButton>
         </Box>
 
+        {/* Grid de dados */}
         <Box
           sx={{
             flex: 1,
