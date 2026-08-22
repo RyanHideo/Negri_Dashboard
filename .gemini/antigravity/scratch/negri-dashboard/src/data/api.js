@@ -1,50 +1,8 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
 const CCM1_TAGS_PATH = import.meta.env.VITE_CCM1_TAGS_PATH || '/modbus/ccm1/tags';
 const CCM2_TAGS_PATH = import.meta.env.VITE_CCM2_TAGS_PATH?.trim() || null;
+const MOTORS_PATH = import.meta.env.VITE_MOTORS_PATH || '/motors/overview';
 const TRUCK_FLOW_PATH = import.meta.env.VITE_TRUCK_FLOW_PATH || '/truck-flow';
-
-const MOTOR_NAMES = [
-  '200 HP',
-  'CT Túnel 0200-CT-01',
-  'Peneira Vibratória Scalp',
-  'Peneira Vibratória 02',
-  'Peneira Vibratória 01',
-  'CT Britador',
-  'Britador HP300',
-  'Retorno Cone 01',
-  'Sem informação',
-  'CT Nova CT4 - PL2',
-  'Sem informação',
-  'Sem informação',
-  'Sirene',
-  'CT2 Inf. Cones',
-  'CT7 Pedra 1',
-  'Sem informação',
-  'CT6 Desc. VSI',
-  'CT8 Pedra 0',
-  'CT9 Pedrisco',
-  'CT10 Bica Corrida',
-  'CT16 Pedra 2',
-  'CT11 Pó 1',
-  'CT12 Pó 2',
-  'CT13 Rejeito',
-  'Sem informação',
-  'Sem informação',
-  "Bomba d'água",
-  'CT15 Ret. Cone 2',
-  'Sem informação',
-  'Unidade Hidráulica VSI',
-  'Sem informação',
-  'Sem informação',
-  'Sem informação',
-  'Sem informação',
-  'Bomba Pressão Água',
-  'Mesa Vibratória Antigo',
-  'Mesa Vibratória Túnel',
-  'Sem informação',
-  'VSI',
-  'Sem informação',
-];
 
 const resolveUrl = (path) => {
   if (/^https?:\/\//i.test(path)) return path;
@@ -169,24 +127,6 @@ const mapCcm = (id, payload) => {
   };
 };
 
-const getMotorDefinition = (index) => {
-  const number = index + 1;
-  const id = `M${number}`;
-
-  if (number <= 11) return { id, currentTag: `${id}_A`, faultTag: `${id}_F`, hoursTag: `${id}_H` };
-  if (number <= 38) return { id, statusTag: `${id}_S`, faultTag: `${id}_F`, hoursTag: `${id}_H` };
-  if (number === 39) {
-    return {
-      id,
-      statusTag: `${id}_S`,
-      currentTag: `${id}_A`,
-      faultTag: `${id}_F`,
-      hoursTag: `${id}_H`,
-    };
-  }
-  return { id, currentTag: `${id}_A` };
-};
-
 const getMotorStatus = ({ status, current, fault, hasStatus, hasCurrent, hasFault }) => {
   if (hasFault && fault === null) return 'indisponivel';
   if (fault !== null && fault !== 0) return 'falha';
@@ -195,29 +135,41 @@ const getMotorStatus = ({ status, current, fault, hasStatus, hasCurrent, hasFaul
   return 'indisponivel';
 };
 
-const mapMotorsFromTags = (payload, ccmName) => {
-  if (!payload) return [];
-  const tags = unwrapTags(payload);
+const formatCcmName = (ccm) => {
+  const match = String(ccm || '').match(/^ccm\s*(\d+)$/i);
+  return match ? `CCM ${match[1]}` : String(ccm || 'CCM').toUpperCase();
+};
 
-  return MOTOR_NAMES.map((name, index) => {
-    const definition = getMotorDefinition(index);
-    const current = definition.currentTag ? readTag(tags, [definition.currentTag]) : null;
-    const hours = definition.hoursTag ? readTag(tags, [definition.hoursTag]) : null;
-    const fault = definition.faultTag ? readTag(tags, [definition.faultTag]) : 0;
-    const status = definition.statusTag ? readTag(tags, [definition.statusTag]) : null;
+const inferMotorId = (motor, index) => {
+  if (motor?.id) return String(motor.id);
+
+  const tagName = [motor?.statusTagName, motor?.currentTagName, motor?.faultTagName, motor?.hoursTagName]
+    .find((candidate) => /^M\d+_/i.test(candidate || ''));
+  return tagName?.match(/^(M\d+)_/i)?.[1]?.toUpperCase() || `M${index + 1}`;
+};
+
+const mapMotors = (payload) => {
+  if (!Array.isArray(payload)) return [];
+
+  return payload.map((motor, index) => {
+    const id = inferMotorId(motor, index);
+    const current = roundToTwo(motor?.current);
+    const hours = roundToTwo(motor?.hours);
+    const fault = roundToTwo(motor?.fault);
+    const status = roundToTwo(motor?.status);
     const motorStatus = getMotorStatus({
       status,
       current,
       fault,
-      hasStatus: Boolean(definition.statusTag),
-      hasCurrent: Boolean(definition.currentTag),
-      hasFault: Boolean(definition.faultTag),
+      hasStatus: Boolean(motor?.statusTagName),
+      hasCurrent: Boolean(motor?.currentTagName),
+      hasFault: Boolean(motor?.faultTagName),
     });
 
     return {
-      id: definition.id,
-      nome: name,
-      ccm: ccmName,
+      id,
+      nome: motor?.name || id,
+      ccm: formatCcmName(motor?.ccm),
       status: motorStatus,
       horimetro: hours,
       corrente: current,
@@ -226,6 +178,9 @@ const mapMotorsFromTags = (payload, ccmName) => {
         ? 'Falha sinalizada pelo CLP'
         : motorStatus === 'indisponivel' ? 'Leitura indisponível' : 'OK',
       potenciaNominal: null,
+      categoria: motor?.category || null,
+      correnteNominal: roundToTwo(motor?.nominalCurrent),
+      possuiInversor: Boolean(motor?.hasInverter),
     };
   });
 };
@@ -292,19 +247,17 @@ const optionalRequest = async (path, signal) => {
 };
 
 export const loadDashboardData = async (signal) => {
-  // CCM1 é a única fonte obrigatória. As demais nunca impedem o painel de abrir.
-  const ccm1Payload = await requestJson(CCM1_TAGS_PATH, signal);
-  const [ccm2Payload, truckFlowPayload] = await Promise.all([
+  // Tags do CCM1 e cadastro/leitura dos motores são as fontes obrigatórias.
+  const [ccm1Payload, motorsPayload, ccm2Payload, truckFlowPayload] = await Promise.all([
+    requestJson(CCM1_TAGS_PATH, signal),
+    requestJson(MOTORS_PATH, signal),
     optionalRequest(CCM2_TAGS_PATH, signal),
     optionalRequest(TRUCK_FLOW_PATH, signal),
   ]);
 
   const ccm1 = mapCcm('ccm1', ccm1Payload);
   const ccm2 = mapCcm('ccm2', ccm2Payload);
-  const motors = [
-    ...mapMotorsFromTags(ccm1Payload, 'CCM 1'),
-    ...mapMotorsFromTags(ccm2Payload, 'CCM 2'),
-  ];
+  const motors = mapMotors(motorsPayload);
   const truckFlow = mapTruckFlow(truckFlowPayload);
 
   return {
@@ -328,4 +281,5 @@ export const loadDashboardData = async (signal) => {
 export const apiConfig = {
   ccm1TagsUrl: resolveUrl(CCM1_TAGS_PATH),
   ccm2TagsUrl: CCM2_TAGS_PATH ? resolveUrl(CCM2_TAGS_PATH) : null,
+  motorsUrl: resolveUrl(MOTORS_PATH),
 };

@@ -111,7 +111,7 @@ const MotoresPage = ({ data }) => {
         >
           {filteredMotores.map((motor) => (
             <MotorCard
-              key={motor.id}
+              key={`${motor.ccm}-${motor.id}`}
               motor={motor}
               onClick={(m) => setSelectedMotor(m)}
             />
