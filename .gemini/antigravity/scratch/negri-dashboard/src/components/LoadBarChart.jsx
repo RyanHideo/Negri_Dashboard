@@ -43,7 +43,7 @@ const LoadBarChart = ({ data = [] }) => {
           Percentual de Carga dos Motores
         </Typography>
         <Chip
-          label="TEMPO REAL"
+          label={data.length > 0 ? 'TEMPO REAL' : 'SEM DADOS'}
           size="small"
           sx={{
             bgcolor: theme.palette.success.main + '20',
@@ -55,7 +55,11 @@ const LoadBarChart = ({ data = [] }) => {
         />
       </Box>
       <Box sx={{ flexGrow: 1, minHeight: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        {data.length === 0 ? (
+          <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="body2" color="text.secondary">Carga dos motores indisponível</Typography>
+          </Box>
+        ) : <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
             margin={{ top: 5, right: 10, left: -10, bottom: 5 }}
@@ -81,7 +85,7 @@ const LoadBarChart = ({ data = [] }) => {
               ))}
             </Bar>
           </BarChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer>}
       </Box>
     </Box>
   );

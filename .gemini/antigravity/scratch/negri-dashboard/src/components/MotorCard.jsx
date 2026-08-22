@@ -69,19 +69,19 @@ const MotorCard = ({ motor, onClick }) => {
         <Box>
           <Typography variant="caption" color="text.secondary" display="block">Horímetro</Typography>
           <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500 }}>
-            {motor?.horimetro || 0} h
+            {motor?.horimetro ?? '—'} h
           </Typography>
         </Box>
         <Box>
           <Typography variant="caption" color="text.secondary" display="block">Corrente</Typography>
           <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500 }}>
-            {motor?.corrente || 0} A
+            {motor?.corrente ?? '—'} A
           </Typography>
         </Box>
         <Box>
           <Typography variant="caption" color="text.secondary" display="block">Carga</Typography>
           <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500 }}>
-            {motor?.cargaEstimada || 0}%
+            {motor?.cargaEstimada === null || motor?.cargaEstimada === undefined ? '—' : `${motor.cargaEstimada}%`}
           </Typography>
         </Box>
       </Box>

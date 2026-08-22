@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { Box, Typography, Chip, useTheme, IconButton, alpha } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
-import { ccm1Data, getCargaMotoresByCCM } from '../data/mockData';
 import { glassCardSx } from '../theme';
 import DataCard from '../components/DataCard';
 import DonutChart from '../components/DonutChart';
@@ -9,9 +8,15 @@ import GaugeChart from '../components/GaugeChart';
 import LoadBarChart from '../components/LoadBarChart';
 import PowerBarsChart from '../components/PowerBarsChart';
 
-export default function CCM1Page() {
+const displayValue = (value) => value ?? '—';
+const displayMeasurement = (value, unit) => value === null || value === undefined ? '—' : `${value} ${unit}`;
+
+export default function CCM1Page({ data }) {
   const theme = useTheme();
-  const cargas = getCargaMotoresByCCM('CCM 1');
+  const { ccm1: ccm1Data, motores } = data;
+  const cargas = motores
+    .filter((motor) => motor.ccm === 'CCM 1' && motor.status === 'ligado')
+    .map((motor) => ({ nome: motor.id, nomeCompleto: motor.nome, carga: motor.cargaEstimada }));
   const multimedidorRef = useRef(null);
   const topoRef = useRef(null);
 
@@ -51,7 +56,12 @@ export default function CCM1Page() {
             {ccm1Data.nome}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Chip label="Status: online" color="success" size="small" variant="outlined" />
+            <Chip
+              label={`Status: ${ccm1Data.status === 'online' ? 'online' : 'sem conexão'}`}
+              color={ccm1Data.status === 'online' ? 'success' : 'warning'}
+              size="small"
+              variant="outlined"
+            />
             <Chip label={ccm1Data.modoOperacao} color="info" size="small" variant="outlined" />
             <Typography variant="caption" color="text.secondary">
               Atualizado: {ccm1Data.ultimaAtualizacao}
@@ -113,25 +123,25 @@ export default function CCM1Page() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Potência</Typography>
               <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {ccm1Data.potencia.ativa} {ccm1Data.potencia.unidade}
+                {displayMeasurement(ccm1Data.potencia.ativa, ccm1Data.potencia.unidade)}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Fator de Potência</Typography>
               <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {ccm1Data.fatorPotencia.valor}
+                {displayValue(ccm1Data.fatorPotencia.valor)}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Temperatura</Typography>
               <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {ccm1Data.temperatura.valor} {ccm1Data.temperatura.unidade}
+                {displayMeasurement(ccm1Data.temperatura.valor, ccm1Data.temperatura.unidade)}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">Consumo</Typography>
               <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {ccm1Data.consumoTotal.valor} {ccm1Data.consumoTotal.unidade}
+                {displayMeasurement(ccm1Data.consumoTotal.valor, ccm1Data.consumoTotal.unidade)}
               </Typography>
             </Box>
           </Box>
@@ -208,54 +218,54 @@ export default function CCM1Page() {
         >
           <DataCard
             title="Tensão L-L"
-            value={`${ccm1Data.tensaoLL.l1l2} ${ccm1Data.tensaoLL.unidade}`}
+            value={displayMeasurement(ccm1Data.tensaoLL.l1l2, ccm1Data.tensaoLL.unidade)}
             subValues={[
-              { label: 'L1-L2', value: ccm1Data.tensaoLL.l1l2 },
-              { label: 'L2-L3', value: ccm1Data.tensaoLL.l2l3 },
-              { label: 'L3-L1', value: ccm1Data.tensaoLL.l3l1 },
+              { label: 'L1-L2', value: displayValue(ccm1Data.tensaoLL.l1l2) },
+              { label: 'L2-L3', value: displayValue(ccm1Data.tensaoLL.l2l3) },
+              { label: 'L3-L1', value: displayValue(ccm1Data.tensaoLL.l3l1) },
             ]}
           />
           <DataCard
             title="Tensão L-N"
-            value={`${ccm1Data.tensaoLN.l1n} ${ccm1Data.tensaoLN.unidade}`}
+            value={displayMeasurement(ccm1Data.tensaoLN.l1n, ccm1Data.tensaoLN.unidade)}
             subValues={[
-              { label: 'L1-N', value: ccm1Data.tensaoLN.l1n },
-              { label: 'L2-N', value: ccm1Data.tensaoLN.l2n },
-              { label: 'L3-N', value: ccm1Data.tensaoLN.l3n },
+              { label: 'L1-N', value: displayValue(ccm1Data.tensaoLN.l1n) },
+              { label: 'L2-N', value: displayValue(ccm1Data.tensaoLN.l2n) },
+              { label: 'L3-N', value: displayValue(ccm1Data.tensaoLN.l3n) },
             ]}
           />
           <DataCard
             title="Corrente"
-            value={`${ccm1Data.corrente.i1} ${ccm1Data.corrente.unidade}`}
+            value={displayMeasurement(ccm1Data.corrente.i1, ccm1Data.corrente.unidade)}
             subValues={[
-              { label: 'I1', value: ccm1Data.corrente.i1 },
-              { label: 'I2', value: ccm1Data.corrente.i2 },
-              { label: 'I3', value: ccm1Data.corrente.i3 },
+              { label: 'I1', value: displayValue(ccm1Data.corrente.i1) },
+              { label: 'I2', value: displayValue(ccm1Data.corrente.i2) },
+              { label: 'I3', value: displayValue(ccm1Data.corrente.i3) },
             ]}
           />
           <DataCard
             title="Potência Ativa"
-            value={`${ccm1Data.potencia.ativa} ${ccm1Data.potencia.unidade}`}
+            value={displayMeasurement(ccm1Data.potencia.ativa, ccm1Data.potencia.unidade)}
             status={ccm1Data.potencia.status}
           />
           <DataCard
             title="Fator de Potência"
-            value={`${ccm1Data.fatorPotencia.valor} ${ccm1Data.fatorPotencia.unidade}`}
+            value={displayMeasurement(ccm1Data.fatorPotencia.valor, ccm1Data.fatorPotencia.unidade)}
             status={ccm1Data.fatorPotencia.status}
           />
           <DataCard
             title="Frequência"
-            value={`${ccm1Data.frequencia.valor} ${ccm1Data.frequencia.unidade}`}
+            value={displayMeasurement(ccm1Data.frequencia.valor, ccm1Data.frequencia.unidade)}
             status={ccm1Data.frequencia.status}
           />
           <DataCard
             title="Consumo Total"
-            value={`${ccm1Data.consumoTotal.valor} ${ccm1Data.consumoTotal.unidade}`}
+            value={displayMeasurement(ccm1Data.consumoTotal.valor, ccm1Data.consumoTotal.unidade)}
             status={ccm1Data.consumoTotal.status}
           />
           <DataCard
             title="Temperatura"
-            value={`${ccm1Data.temperatura.valor} ${ccm1Data.temperatura.unidade}`}
+            value={displayMeasurement(ccm1Data.temperatura.valor, ccm1Data.temperatura.unidade)}
             status={ccm1Data.temperatura.status}
           />
         </Box>

@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { Box, Typography, Chip, useTheme, IconButton, alpha } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
-import { ccm2Data, semaforoData, truckCounterData, getCargaMotoresByCCM } from '../data/mockData';
 import { glassCardSx } from '../theme';
 import Semaphore from '../components/Semaphore';
 import TruckCounter from '../components/TruckCounter';
@@ -10,9 +9,15 @@ import DonutChart from '../components/DonutChart';
 import GaugeChart from '../components/GaugeChart';
 import LoadBarChart from '../components/LoadBarChart';
 
-export default function CCM2Page() {
+const displayValue = (value) => value ?? '—';
+const displayMeasurement = (value, unit) => value === null || value === undefined ? '—' : `${value} ${unit}`;
+
+export default function CCM2Page({ data }) {
   const theme = useTheme();
-  const cargas = getCargaMotoresByCCM('CCM 2');
+  const { ccm2: ccm2Data, semaforo: semaforoData, truckCounter: truckCounterData, motores } = data;
+  const cargas = motores
+    .filter((motor) => motor.ccm === 'CCM 2' && motor.status === 'ligado')
+    .map((motor) => ({ nome: motor.id, nomeCompleto: motor.nome, carga: motor.cargaEstimada }));
   const multimedidorRef = useRef(null);
   const topoRef = useRef(null);
 
@@ -52,7 +57,12 @@ export default function CCM2Page() {
             {ccm2Data.nome}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Chip label="Status: online" color="success" size="small" variant="outlined" />
+            <Chip
+              label={`Status: ${ccm2Data.status === 'online' ? 'online' : 'sem conexão'}`}
+              color={ccm2Data.status === 'online' ? 'success' : 'warning'}
+              size="small"
+              variant="outlined"
+            />
             <Chip label={ccm2Data.modoOperacao} color="info" size="small" variant="outlined" />
             <Typography variant="caption" color="text.secondary">
               Atualizado: {ccm2Data.ultimaAtualizacao}
@@ -208,54 +218,54 @@ export default function CCM2Page() {
         >
           <DataCard
             title="Tensão L-L"
-            value={`${ccm2Data.tensaoLL.l1l2} ${ccm2Data.tensaoLL.unidade}`}
+            value={displayMeasurement(ccm2Data.tensaoLL.l1l2, ccm2Data.tensaoLL.unidade)}
             subValues={[
-              { label: 'L1-L2', value: ccm2Data.tensaoLL.l1l2 },
-              { label: 'L2-L3', value: ccm2Data.tensaoLL.l2l3 },
-              { label: 'L3-L1', value: ccm2Data.tensaoLL.l3l1 },
+              { label: 'L1-L2', value: displayValue(ccm2Data.tensaoLL.l1l2) },
+              { label: 'L2-L3', value: displayValue(ccm2Data.tensaoLL.l2l3) },
+              { label: 'L3-L1', value: displayValue(ccm2Data.tensaoLL.l3l1) },
             ]}
           />
           <DataCard
             title="Tensão L-N"
-            value={`${ccm2Data.tensaoLN.l1n} ${ccm2Data.tensaoLN.unidade}`}
+            value={displayMeasurement(ccm2Data.tensaoLN.l1n, ccm2Data.tensaoLN.unidade)}
             subValues={[
-              { label: 'L1-N', value: ccm2Data.tensaoLN.l1n },
-              { label: 'L2-N', value: ccm2Data.tensaoLN.l2n },
-              { label: 'L3-N', value: ccm2Data.tensaoLN.l3n },
+              { label: 'L1-N', value: displayValue(ccm2Data.tensaoLN.l1n) },
+              { label: 'L2-N', value: displayValue(ccm2Data.tensaoLN.l2n) },
+              { label: 'L3-N', value: displayValue(ccm2Data.tensaoLN.l3n) },
             ]}
           />
           <DataCard
             title="Corrente"
-            value={`${ccm2Data.corrente.i1} ${ccm2Data.corrente.unidade}`}
+            value={displayMeasurement(ccm2Data.corrente.i1, ccm2Data.corrente.unidade)}
             subValues={[
-              { label: 'I1', value: ccm2Data.corrente.i1 },
-              { label: 'I2', value: ccm2Data.corrente.i2 },
-              { label: 'I3', value: ccm2Data.corrente.i3 },
+              { label: 'I1', value: displayValue(ccm2Data.corrente.i1) },
+              { label: 'I2', value: displayValue(ccm2Data.corrente.i2) },
+              { label: 'I3', value: displayValue(ccm2Data.corrente.i3) },
             ]}
           />
           <DataCard
             title="Potência Ativa"
-            value={`${ccm2Data.potencia.ativa} ${ccm2Data.potencia.unidade}`}
+            value={displayMeasurement(ccm2Data.potencia.ativa, ccm2Data.potencia.unidade)}
             status={ccm2Data.potencia.status}
           />
           <DataCard
             title="Fator de Potência"
-            value={`${ccm2Data.fatorPotencia.valor} ${ccm2Data.fatorPotencia.unidade}`}
+            value={displayMeasurement(ccm2Data.fatorPotencia.valor, ccm2Data.fatorPotencia.unidade)}
             status={ccm2Data.fatorPotencia.status}
           />
           <DataCard
             title="Frequência"
-            value={`${ccm2Data.frequencia.valor} ${ccm2Data.frequencia.unidade}`}
+            value={displayMeasurement(ccm2Data.frequencia.valor, ccm2Data.frequencia.unidade)}
             status={ccm2Data.frequencia.status}
           />
           <DataCard
             title="Consumo Total"
-            value={`${ccm2Data.consumoTotal.valor} ${ccm2Data.consumoTotal.unidade}`}
+            value={displayMeasurement(ccm2Data.consumoTotal.valor, ccm2Data.consumoTotal.unidade)}
             status={ccm2Data.consumoTotal.status}
           />
           <DataCard
             title="Temperatura"
-            value={`${ccm2Data.temperatura.valor} ${ccm2Data.temperatura.unidade}`}
+            value={displayMeasurement(ccm2Data.temperatura.valor, ccm2Data.temperatura.unidade)}
             status={ccm2Data.temperatura.status}
           />
         </Box>

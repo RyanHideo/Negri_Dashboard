@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Box, Typography, Select, MenuItem, FormControl, InputLabel, useTheme } from '@mui/material';
-import { motoresData, dashboardData } from '../data/mockData';
 import MotorCard from '../components/MotorCard';
 import MotorModal from '../components/MotorModal';
 import { glassCardSx } from '../theme';
 
-const MotoresPage = () => {
+const MotoresPage = ({ data }) => {
   const theme = useTheme();
+  const { motores: motoresData, dashboard: dashboardData } = data;
   const [filterCCM, setFilterCCM] = useState('Todos');
   const [filterStatus, setFilterStatus] = useState('Todos');
   const [selectedMotor, setSelectedMotor] = useState(null);

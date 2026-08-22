@@ -4,18 +4,21 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 const DonutChart = ({ value = 0, maxValue = 100, label = 'CARGA', size = 'medium' }) => {
   const theme = useTheme();
-
-  const percentage = Math.round((value / maxValue) * 100) || 0;
+  const numericValue = Number(value);
+  const numericMax = Number(maxValue);
+  const available = value !== null && Number.isFinite(numericValue) && Number.isFinite(numericMax) && numericMax > 0;
+  const percentage = available ? Math.round((numericValue / numericMax) * 100) : null;
 
   const color = useMemo(() => {
+    if (percentage === null) return theme.palette.text.disabled;
     if (percentage <= 60) return theme.palette.success.main;
     if (percentage <= 85) return theme.palette.warning.main;
     return theme.palette.error.main;
   }, [percentage, theme]);
 
   const data = [
-    { name: 'Valor', value: value },
-    { name: 'Restante', value: Math.max(maxValue - value, 0) },
+    { name: 'Valor', value: available ? numericValue : 0 },
+    { name: 'Restante', value: available ? Math.max(numericMax - numericValue, 0) : 1 },
   ];
 
   const sizeMap = {
@@ -61,7 +64,7 @@ const DonutChart = ({ value = 0, maxValue = 100, label = 'CARGA', size = 'medium
           }}
         >
           <Typography variant={textVariant} sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
-            {percentage}%
+            {percentage === null ? '—' : `${percentage}%`}
           </Typography>
         </Box>
       </Box>

@@ -6,20 +6,23 @@ const PowerBarsChart = ({ potenciaVSI = {} }) => {
   const theme = useTheme();
 
   const { potencia1 = {}, potencia2 = {} } = potenciaVSI;
+  const hasData = [potencia1.valor, potencia2.valor].some(
+    (value) => value !== null && value !== undefined && Number.isFinite(Number(value)),
+  );
 
   // Preparar dados para o gráfico (formato horizontal)
   const data = [
     {
       nome: potencia1.nome || 'Potência 1',
-      valor: potencia1.valor || 0,
-      maximo: potencia1.maximo || 100,
-      percentual: Math.round((potencia1.valor || 0) / (potencia1.maximo || 100) * 100),
+      valor: Number(potencia1.valor) || 0,
+      maximo: Number(potencia1.maximo) || 100,
+      percentual: Math.round((Number(potencia1.valor) || 0) / (Number(potencia1.maximo) || 100) * 100),
     },
     {
       nome: potencia2.nome || 'Potência 2',
-      valor: potencia2.valor || 0,
-      maximo: potencia2.maximo || 100,
-      percentual: Math.round((potencia2.valor || 0) / (potencia2.maximo || 100) * 100),
+      valor: Number(potencia2.valor) || 0,
+      maximo: Number(potencia2.maximo) || 100,
+      percentual: Math.round((Number(potencia2.valor) || 0) / (Number(potencia2.maximo) || 100) * 100),
     },
   ];
 
@@ -64,7 +67,11 @@ const PowerBarsChart = ({ potenciaVSI = {} }) => {
       </Typography>
       
       <Box sx={{ flex: 1, minHeight: 0, width: '100%' }}>
-        <ResponsiveContainer width="100%" height="100%">
+        {!hasData ? (
+          <Box sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="body2" color="text.secondary">Potências do VSI indisponíveis</Typography>
+          </Box>
+        ) : <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={data}
             layout="vertical"
@@ -94,7 +101,7 @@ const PowerBarsChart = ({ potenciaVSI = {} }) => {
               ))}
             </Bar>
           </BarChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer>}
       </Box>
     </Box>
   );

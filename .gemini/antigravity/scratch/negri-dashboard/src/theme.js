@@ -136,6 +136,8 @@ export const getStatusColor = (status, theme) => {
       return theme.palette.error.main;
     case 'warning':
     case 'atenção':
+    case 'unavailable':
+    case 'indisponivel':
       return theme.palette.warning.main;
     default:
       return theme.palette.text.secondary;

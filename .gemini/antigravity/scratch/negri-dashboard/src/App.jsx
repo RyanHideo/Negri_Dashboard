@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
-import { ThemeProvider, CssBaseline, Box } from '@mui/material';
+import { Alert, Box, Button, CssBaseline, LinearProgress, ThemeProvider } from '@mui/material';
 import { createAppTheme } from './theme';
 
 import Header from './components/Header';
 import CCM1Page from './pages/CCM1Page';
 import CCM2Page from './pages/CCM2Page';
 import MotoresPage from './pages/MotoresPage';
+import { DataProvider, useDashboardData } from './data/DataContext';
 
 const TAB_LABELS = ['CCM 1', 'CCM 2', 'Motores'];
 
@@ -38,16 +39,18 @@ function App() {
     setCurrentTab(newTab);
   };
 
+  const { data, error, loading, lastSuccessfulAt, refresh } = useDashboardData();
+
   const renderPage = () => {
     switch (currentTab) {
       case 0:
-        return <CCM1Page />;
+        return <CCM1Page data={data} />;
       case 1:
-        return <CCM2Page />;
+        return <CCM2Page data={data} />;
       case 2:
-        return <MotoresPage />;
+        return <MotoresPage data={data} />;
       default:
-        return <CCM1Page />;
+        return <CCM1Page data={data} />;
     }
   };
 
@@ -72,6 +75,21 @@ function App() {
           onToggleTheme={handleToggleTheme}
           tabLabels={TAB_LABELS}
         />
+        {loading && <LinearProgress sx={{ flexShrink: 0 }} />}
+        {error && (
+          <Alert
+            severity="warning"
+            action={(
+              <Button color="inherit" size="small" onClick={refresh}>
+                Tentar agora
+              </Button>
+            )}
+            sx={{ borderRadius: 0, flexShrink: 0 }}
+          >
+            API do CCM1 indisponível. O painel continuará aberto e tentará novamente automaticamente.
+            {lastSuccessfulAt && ` Última leitura válida: ${lastSuccessfulAt.toLocaleTimeString('pt-BR')}.`}
+          </Alert>
+        )}
         <Box
           component="main"
           sx={{
@@ -89,4 +107,8 @@ function App() {
   );
 }
 
-export default App;
+function AppWithData() {
+  return <DataProvider><App /></DataProvider>;
+}
+
+export default AppWithData;

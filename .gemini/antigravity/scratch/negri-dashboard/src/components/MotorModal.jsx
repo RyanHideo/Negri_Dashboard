@@ -79,7 +79,7 @@ const MotorModal = ({ motor, open, onClose }) => {
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4, mb: 4 }}>
           <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 250 }}>
             <DonutChart 
-              value={motor.cargaEstimada || 0} 
+              value={motor.cargaEstimada}
               label="Carga"
             />
           </Box>
@@ -95,14 +95,14 @@ const MotorModal = ({ motor, open, onClose }) => {
             <Box>
               <Typography variant="overline" color="text.secondary">Horímetro</Typography>
               <Typography variant="h6" color="text.primary">
-                {motor.horimetro || 0} h
+                {motor.horimetro ?? '—'} h
               </Typography>
             </Box>
             
             <Box>
               <Typography variant="overline" color="text.secondary">Corrente</Typography>
               <Typography variant="h6" color="text.primary">
-                {motor.corrente || 0} A
+                {motor.corrente ?? '—'} A
               </Typography>
             </Box>
 

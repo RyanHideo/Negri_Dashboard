@@ -4,7 +4,9 @@ import { LocalShipping } from '@mui/icons-material';
 
 const TruckCounter = ({ contagem = 0, meta = 100, ultimoPulso = '00:00:00' }) => {
   const theme = useTheme();
-  const progress = Math.min((contagem / meta) * 100, 100) || 0;
+  const hasCount = contagem !== null && Number.isFinite(Number(contagem));
+  const hasGoal = meta !== null && Number.isFinite(Number(meta)) && Number(meta) > 0;
+  const progress = hasCount && hasGoal ? Math.min((Number(contagem) / Number(meta)) * 100, 100) : 0;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: '100%' }}>
@@ -26,17 +28,17 @@ const TruckCounter = ({ contagem = 0, meta = 100, ultimoPulso = '00:00:00' }) =>
             letterSpacing: '0.05em',
           }}
         >
-          {contagem.toString().padStart(3, '0')}
+          {hasCount ? String(contagem).padStart(3, '0') : '—'}
         </Typography>
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
           <Typography variant="caption" color="text.secondary">
-            Meta: {meta}
+            Meta: {hasGoal ? meta : '—'}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {progress.toFixed(0)}%
+            {hasGoal && hasCount ? `${progress.toFixed(0)}%` : '—'}
           </Typography>
         </Box>
         <LinearProgress

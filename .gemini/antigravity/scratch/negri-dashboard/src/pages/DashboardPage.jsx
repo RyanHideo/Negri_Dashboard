@@ -1,14 +1,14 @@
 import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
-import { dashboardData, ccm1Data, ccm2Data, alarmesData } from '../data/mockData';
 import DonutChart from '../components/DonutChart';
 import GaugeChart from '../components/GaugeChart';
 import AlarmList from '../components/AlarmList';
 import DataCard from '../components/DataCard';
 import { glassCardSx } from '../theme';
 
-const DashboardPage = () => {
+const DashboardPage = ({ data }) => {
   const theme = useTheme();
+  const { dashboard: dashboardData, ccm1: ccm1Data, ccm2: ccm2Data, alarmes: alarmesData } = data;
 
   return (
     <Box
