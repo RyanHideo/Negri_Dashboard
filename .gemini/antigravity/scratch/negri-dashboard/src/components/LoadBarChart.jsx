@@ -67,9 +67,12 @@ const LoadBarChart = ({ data = [] }) => {
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} />
             <XAxis
               dataKey="nome"
-              tick={{ fill: theme.palette.text.secondary, fontSize: 11 }}
+              tick={{ fill: theme.palette.text.secondary, fontSize: 9 }}
               axisLine={{ stroke: theme.palette.divider }}
               tickLine={false}
+              angle={-18}
+              textAnchor="end"
+              height={48}
             />
             <YAxis
               domain={[0, 100]}
@@ -81,7 +84,7 @@ const LoadBarChart = ({ data = [] }) => {
             <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }} />
             <Bar dataKey="carga" radius={[4, 4, 0, 0]} maxBarSize={40} isAnimationActive={true}>
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={getColor(entry.carga)} />
+                <Cell key={entry.reactKey ?? `cell-${index}`} fill={getColor(entry.carga)} />
               ))}
             </Bar>
           </BarChart>

@@ -1,22 +1,17 @@
 import React, { useRef } from 'react';
 import { Box, Typography, Chip, useTheme, IconButton, alpha } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
+import { ccm1Data } from '../data/mockData';
 import { glassCardSx } from '../theme';
 import DataCard from '../components/DataCard';
-import DonutChart from '../components/DonutChart';
-import GaugeChart from '../components/GaugeChart';
 import LoadBarChart from '../components/LoadBarChart';
+import LoadChart from '../components/LoadChart';
 import PowerBarsChart from '../components/PowerBarsChart';
+import useCcm1Data from '../hooks/useCcm1Data';
 
-const displayValue = (value) => value ?? '—';
-const displayMeasurement = (value, unit) => value === null || value === undefined ? '—' : `${value} ${unit}`;
-
-export default function CCM1Page({ data }) {
+export default function CCM1Page() {
   const theme = useTheme();
-  const { ccm1: ccm1Data, motores } = data;
-  const cargas = motores
-    .filter((motor) => motor.ccm === 'CCM 1' && motor.status === 'ligado')
-    .map((motor) => ({ nome: motor.id, nomeCompleto: motor.nome, carga: motor.cargaEstimada }));
+  const { power, motorLoads, loading, powerError } = useCcm1Data();
   const multimedidorRef = useRef(null);
   const topoRef = useRef(null);
 
@@ -56,12 +51,7 @@ export default function CCM1Page({ data }) {
             {ccm1Data.nome}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-            <Chip
-              label={`Status: ${ccm1Data.status === 'online' ? 'online' : 'sem conexão'}`}
-              color={ccm1Data.status === 'online' ? 'success' : 'warning'}
-              size="small"
-              variant="outlined"
-            />
+            <Chip label="Status: online" color="success" size="small" variant="outlined" />
             <Chip label={ccm1Data.modoOperacao} color="info" size="small" variant="outlined" />
             <Typography variant="caption" color="text.secondary">
               Atualizado: {ccm1Data.ultimaAtualizacao}
@@ -74,25 +64,12 @@ export default function CCM1Page({ data }) {
           sx={{
             flex: 1,
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: '1fr 1fr 1fr' },
-            gridTemplateRows: { xs: 'auto', md: '1fr 1fr' },
+            gridTemplateColumns: { xs: '1fr', md: 'repeat(6, minmax(0, 1fr))' },
+            gridTemplateRows: { xs: 'auto', md: 'minmax(0, 0.9fr) minmax(0, 1.1fr)' },
             gap: 2,
             minHeight: 0,
           }}
         >
-          {/* Donut Chart - Carga */}
-          <Box
-            sx={{
-              ...glassCardSx(theme),
-              p: 3,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <DonutChart value={ccm1Data.cargaPercentual} label="Carga" size="large" />
-          </Box>
-
           {/* Power Bars - Potências do VSI */}
           <Box
             sx={{
@@ -101,62 +78,33 @@ export default function CCM1Page({ data }) {
               display: 'flex',
               alignItems: 'stretch',
               justifyContent: 'flex-start',
+              gridColumn: { xs: 'auto', md: 'span 2' },
+              minHeight: { xs: 250, md: 0 },
             }}
           >
             <PowerBarsChart potenciaVSI={ccm1Data.potenciaVSI} />
           </Box>
 
-          {/* Resumo rápido */}
-          <Box
-            sx={{
-              ...glassCardSx(theme),
-              p: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              gap: 2,
-            }}
-          >
-            <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
-              Resumo
-            </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Potência</Typography>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {displayMeasurement(ccm1Data.potencia.ativa, ccm1Data.potencia.unidade)}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Fator de Potência</Typography>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {displayValue(ccm1Data.fatorPotencia.valor)}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Temperatura</Typography>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {displayMeasurement(ccm1Data.temperatura.valor, ccm1Data.temperatura.unidade)}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="body2" color="text.secondary">Consumo</Typography>
-              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
-                {displayMeasurement(ccm1Data.consumoTotal.valor, ccm1Data.consumoTotal.unidade)}
-              </Typography>
-            </Box>
-          </Box>
-
-          {/* Gráfico de barras - Carga dos Motores */}
           <Box
             sx={{
               ...glassCardSx(theme),
               p: 2,
-              gridColumn: { xs: '1 / -1' },
-              minHeight: { xs: 250, md: 0 },
+              gridColumn: { xs: 'auto', md: 'span 4' },
+              minHeight: { xs: 280, md: 0 },
             }}
           >
-            <LoadBarChart data={cargas} />
+            <LoadBarChart data={motorLoads} />
           </Box>
+
+          {[
+            { title: 'Carga do Trafo Principal', data: power.mainTransformer, capacityKva: 500 },
+            { title: 'Carga do Trafo VSI', data: power.vsiTransformer, capacityKva: 300 },
+            { title: 'Carga Geral', data: power.general, capacityKva: 800 },
+          ].map(({ title, data, capacityKva }) => (
+            <Box key={title} sx={{ ...glassCardSx(theme), p: 2, gridColumn: { xs: 'auto', md: 'span 2' }, minHeight: { xs: 260, md: 0 } }}>
+              <LoadChart title={title} data={data} maxValue={capacityKva} capacityKva={capacityKva} loading={loading} error={powerError} />
+            </Box>
+          ))}
         </Box>
 
         {/* Botão para ir ao multimedidor */}
@@ -218,54 +166,54 @@ export default function CCM1Page({ data }) {
         >
           <DataCard
             title="Tensão L-L"
-            value={displayMeasurement(ccm1Data.tensaoLL.l1l2, ccm1Data.tensaoLL.unidade)}
+            value={`${ccm1Data.tensaoLL.l1l2} ${ccm1Data.tensaoLL.unidade}`}
             subValues={[
-              { label: 'L1-L2', value: displayValue(ccm1Data.tensaoLL.l1l2) },
-              { label: 'L2-L3', value: displayValue(ccm1Data.tensaoLL.l2l3) },
-              { label: 'L3-L1', value: displayValue(ccm1Data.tensaoLL.l3l1) },
+              { label: 'L1-L2', value: ccm1Data.tensaoLL.l1l2 },
+              { label: 'L2-L3', value: ccm1Data.tensaoLL.l2l3 },
+              { label: 'L3-L1', value: ccm1Data.tensaoLL.l3l1 },
             ]}
           />
           <DataCard
             title="Tensão L-N"
-            value={displayMeasurement(ccm1Data.tensaoLN.l1n, ccm1Data.tensaoLN.unidade)}
+            value={`${ccm1Data.tensaoLN.l1n} ${ccm1Data.tensaoLN.unidade}`}
             subValues={[
-              { label: 'L1-N', value: displayValue(ccm1Data.tensaoLN.l1n) },
-              { label: 'L2-N', value: displayValue(ccm1Data.tensaoLN.l2n) },
-              { label: 'L3-N', value: displayValue(ccm1Data.tensaoLN.l3n) },
+              { label: 'L1-N', value: ccm1Data.tensaoLN.l1n },
+              { label: 'L2-N', value: ccm1Data.tensaoLN.l2n },
+              { label: 'L3-N', value: ccm1Data.tensaoLN.l3n },
             ]}
           />
           <DataCard
             title="Corrente"
-            value={displayMeasurement(ccm1Data.corrente.i1, ccm1Data.corrente.unidade)}
+            value={`${ccm1Data.corrente.i1} ${ccm1Data.corrente.unidade}`}
             subValues={[
-              { label: 'I1', value: displayValue(ccm1Data.corrente.i1) },
-              { label: 'I2', value: displayValue(ccm1Data.corrente.i2) },
-              { label: 'I3', value: displayValue(ccm1Data.corrente.i3) },
+              { label: 'I1', value: ccm1Data.corrente.i1 },
+              { label: 'I2', value: ccm1Data.corrente.i2 },
+              { label: 'I3', value: ccm1Data.corrente.i3 },
             ]}
           />
           <DataCard
             title="Potência Ativa"
-            value={displayMeasurement(ccm1Data.potencia.ativa, ccm1Data.potencia.unidade)}
+            value={`${ccm1Data.potencia.ativa} ${ccm1Data.potencia.unidade}`}
             status={ccm1Data.potencia.status}
           />
           <DataCard
             title="Fator de Potência"
-            value={displayMeasurement(ccm1Data.fatorPotencia.valor, ccm1Data.fatorPotencia.unidade)}
+            value={`${ccm1Data.fatorPotencia.valor} ${ccm1Data.fatorPotencia.unidade}`}
             status={ccm1Data.fatorPotencia.status}
           />
           <DataCard
             title="Frequência"
-            value={displayMeasurement(ccm1Data.frequencia.valor, ccm1Data.frequencia.unidade)}
+            value={`${ccm1Data.frequencia.valor} ${ccm1Data.frequencia.unidade}`}
             status={ccm1Data.frequencia.status}
           />
           <DataCard
             title="Consumo Total"
-            value={displayMeasurement(ccm1Data.consumoTotal.valor, ccm1Data.consumoTotal.unidade)}
+            value={`${ccm1Data.consumoTotal.valor} ${ccm1Data.consumoTotal.unidade}`}
             status={ccm1Data.consumoTotal.status}
           />
           <DataCard
             title="Temperatura"
-            value={displayMeasurement(ccm1Data.temperatura.valor, ccm1Data.temperatura.unidade)}
+            value={`${ccm1Data.temperatura.valor} ${ccm1Data.temperatura.unidade}`}
             status={ccm1Data.temperatura.status}
           />
         </Box>

@@ -5,7 +5,6 @@ import { glassCardSx } from '../theme';
 import Semaphore from '../components/Semaphore';
 import TruckCounter from '../components/TruckCounter';
 import DataCard from '../components/DataCard';
-import DonutChart from '../components/DonutChart';
 import GaugeChart from '../components/GaugeChart';
 import LoadBarChart from '../components/LoadBarChart';
 
@@ -113,17 +112,45 @@ export default function CCM2Page({ data }) {
             <TruckCounter contagem={truckCounterData.contagem} meta={truckCounterData.meta} ultimoPulso={truckCounterData.ultimoPulso} />
           </Box>
 
-          {/* Donut Chart - Carga */}
+          {/* Resumo operacional */}
           <Box
             sx={{
               ...glassCardSx(theme),
-              p: 2,
+              p: 3,
               display: 'flex',
-              alignItems: 'center',
+              flexDirection: 'column',
               justifyContent: 'center',
+              gap: 1.5,
+              gridColumn: { md: 'span 2' },
             }}
           >
-            <DonutChart value={ccm2Data.cargaPercentual} label="Carga" size="large" />
+            <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 600, textTransform: 'uppercase' }}>
+              Resumo
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+              <Typography variant="body2" color="text.secondary">Potência</Typography>
+              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
+                {ccm2Data.potencia.ativa} {ccm2Data.potencia.unidade}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+              <Typography variant="body2" color="text.secondary">Fator de Potência</Typography>
+              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
+                {ccm2Data.fatorPotencia.valor}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+              <Typography variant="body2" color="text.secondary">Temperatura</Typography>
+              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
+                {ccm2Data.temperatura.valor} {ccm2Data.temperatura.unidade}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+              <Typography variant="body2" color="text.secondary">Consumo</Typography>
+              <Typography variant="body2" color="text.primary" sx={{ fontWeight: 600 }}>
+                {ccm2Data.consumoTotal.valor} {ccm2Data.consumoTotal.unidade}
+              </Typography>
+            </Box>
           </Box>
 
           {/* Gauge - Capacidade */}

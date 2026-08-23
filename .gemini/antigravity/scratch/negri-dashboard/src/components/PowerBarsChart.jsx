@@ -92,6 +92,8 @@ const PowerBarsChart = ({ potenciaVSI = {} }) => {
               tick={{ fill: theme.palette.text.secondary, fontSize: 13, fontWeight: 500 }}
               axisLine={false}
               tickLine={false}
+              interval={0}
+              minTickGap={0}
               width={105}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
