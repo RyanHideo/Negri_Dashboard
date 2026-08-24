@@ -176,7 +176,7 @@ export default function CCMPage({ data }) {
 
         <Box component="section">
           <Typography variant="h6" color="text.primary" sx={{ mb: 1.5, fontWeight: 700 }}>
-            Equipamentos auxiliares
+            Container
           </Typography>
           <Box
             sx={{
