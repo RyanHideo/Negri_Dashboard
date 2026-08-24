@@ -4,7 +4,7 @@ import { Tabs, Tab, useTheme, alpha } from '@mui/material';
 const TabNav = ({ currentTab, onTabChange }) => {
   const theme = useTheme();
 
-  const tabs = ['CCM 1', 'CCM 2', 'Motores'];
+  const tabs = ['CCM', 'Motores'];
 
   return (
     <Tabs

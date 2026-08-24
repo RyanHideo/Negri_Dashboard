@@ -1,8 +1,7 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/$/, '');
 const CCM1_TAGS_PATH = import.meta.env.VITE_CCM1_TAGS_PATH || '/modbus/ccm1/tags';
-const CCM2_TAGS_PATH = import.meta.env.VITE_CCM2_TAGS_PATH?.trim() || null;
 const MOTORS_PATH = import.meta.env.VITE_MOTORS_PATH || '/motors/overview';
-const TRUCK_FLOW_PATH = import.meta.env.VITE_TRUCK_FLOW_PATH || '/truck-flow';
+const AUXILIARY_PATH = import.meta.env.VITE_CCM_AUXILIARY_PATH || '/ccm/auxiliary';
 
 const resolveUrl = (path) => {
   if (/^https?:\/\//i.test(path)) return path;
@@ -62,7 +61,7 @@ const formatTime = (date) => date?.toLocaleTimeString('pt-BR') || '--:--:--';
 
 const createEmptyCcm = (id) => ({
   id,
-  nome: id.toUpperCase().replace('CCM', 'CCM '),
+  nome: 'CCM',
   status: 'offline',
   ultimaAtualizacao: '--:--:--',
   modoOperacao: 'Sem dados',
@@ -175,7 +174,7 @@ const getMotorStatus = ({ status, current, fault, hasStatus, hasCurrent, hasFaul
 
 const formatCcmName = (ccm) => {
   const match = String(ccm || '').match(/^ccm\s*(\d+)$/i);
-  return match ? `CCM ${match[1]}` : String(ccm || 'CCM').toUpperCase();
+  return !match || match[1] === '1' ? 'CCM' : String(ccm).toUpperCase();
 };
 
 const inferMotorId = (motor, index) => {
@@ -223,7 +222,7 @@ const mapMotors = (payload) => {
   });
 };
 
-const buildDashboard = (ccm1, ccm2, motors) => ({
+const buildDashboard = (ccm1, motors) => ({
   eficienciaProdutiva: null,
   economiasEnergeticas: null,
   motoresTotal: motors.length,
@@ -232,44 +231,67 @@ const buildDashboard = (ccm1, ccm2, motors) => ({
   motoresFalha: motors.filter((motor) => motor.status === 'falha').length,
   motoresIndisponiveis: motors.filter((motor) => motor.status === 'indisponivel').length,
   consumoTotalCCM1: ccm1.consumoTotal.valor,
-  consumoTotalCCM2: ccm2.consumoTotal.valor,
   potenciaAparenteCCM1: ccm1.capacidade,
-  potenciaAparenteCCM2: ccm2.capacidade,
 });
 
-const mapTruckFlow = (payload) => {
+const createEmptyAuxiliary = () => ({
+  britadorPrimario: { potenciaPercentual: null, status: 'unavailable', updatedAt: null },
+  semaforo: { estado: 'desligado', status: 'unavailable', updatedAt: null },
+  contadorCaminhoes: {
+    contagem: null,
+    meta: null,
+    ultimoPulso: '--:--:--',
+    status: 'unavailable',
+  },
+});
+
+const mapAuxiliary = (payload) => {
   if (!payload) {
-    return {
-      semaforo: { estado: 'desligado' },
-      truckCounter: { contagem: null, meta: null, ultimoPulso: '--:--:--' },
-    };
+    return createEmptyAuxiliary();
   }
 
-  const statusMap = { GREEN: 'verde', RED: 'vermelho', OFF: 'desligado', UNKNOWN: 'desligado' };
-  const rawStatus = String(payload.status || 'UNKNOWN').toUpperCase();
+  const empty = createEmptyAuxiliary();
+  const crusher = payload.britadorPrimario || {};
+  const semaphore = payload.semaforo || {};
+  const truckCounter = payload.contadorCaminhoes || {};
+  const crusherAvailable = String(crusher.status || '').toLowerCase() === 'good';
+  const semaphoreAvailable = String(semaphore.status || '').toLowerCase() === 'good';
+  const counterAvailable = String(truckCounter.status || '').toLowerCase() === 'good';
+  const semaphoreState = String(semaphore.estado || '').toLowerCase();
 
   return {
-    semaforo: { estado: statusMap[rawStatus] || 'desligado' },
-    truckCounter: {
-      contagem: roundToTwo(payload.truckCount),
-      meta: null,
-      ultimoPulso: formatTime(normalizeTimestamp(payload.updatedAt)),
+    britadorPrimario: {
+      potenciaPercentual: crusherAvailable ? roundToTwo(crusher.potenciaPercentual) : null,
+      status: crusherAvailable ? 'good' : 'unavailable',
+      updatedAt: crusherAvailable ? crusher.updatedAt || null : null,
+    },
+    semaforo: {
+      estado: semaphoreAvailable && ['verde', 'vermelho'].includes(semaphoreState)
+        ? semaphoreState
+        : 'desligado',
+      status: semaphoreAvailable ? 'good' : 'unavailable',
+      updatedAt: semaphoreAvailable ? semaphore.updatedAt || null : null,
+    },
+    contadorCaminhoes: {
+      contagem: counterAvailable ? roundToTwo(truckCounter.contagem) : null,
+      meta: counterAvailable ? roundToTwo(truckCounter.meta) : null,
+      ultimoPulso: counterAvailable
+        ? formatTime(normalizeTimestamp(truckCounter.ultimoPulso))
+        : empty.contadorCaminhoes.ultimoPulso,
+      status: counterAvailable ? 'good' : 'unavailable',
     },
   };
 };
 
 export const createEmptyDashboardData = () => {
   const ccm1 = createEmptyCcm('ccm1');
-  const ccm2 = createEmptyCcm('ccm2');
   const motors = [];
 
   return {
     ccm1,
-    ccm2,
     motores: motors,
-    dashboard: buildDashboard(ccm1, ccm2, motors),
-    semaforo: { estado: 'desligado' },
-    truckCounter: { contagem: null, meta: null, ultimoPulso: '--:--:--' },
+    dashboard: buildDashboard(ccm1, motors),
+    equipamentosAuxiliares: createEmptyAuxiliary(),
     alarmes: [],
   };
 };
@@ -286,24 +308,21 @@ const optionalRequest = async (path, signal) => {
 
 export const loadDashboardData = async (signal) => {
   // Tags do CCM1 e cadastro/leitura dos motores são as fontes obrigatórias.
-  const [ccm1Payload, motorsPayload, ccm2Payload, truckFlowPayload] = await Promise.all([
+  const [ccm1Payload, motorsPayload, auxiliaryPayload] = await Promise.all([
     requestJson(CCM1_TAGS_PATH, signal),
     requestJson(MOTORS_PATH, signal),
-    optionalRequest(CCM2_TAGS_PATH, signal),
-    optionalRequest(TRUCK_FLOW_PATH, signal),
+    optionalRequest(AUXILIARY_PATH, signal),
   ]);
 
   const ccm1 = mapCcm('ccm1', ccm1Payload);
-  const ccm2 = mapCcm('ccm2', ccm2Payload);
   const motors = mapMotors(motorsPayload);
-  const truckFlow = mapTruckFlow(truckFlowPayload);
+  const equipamentosAuxiliares = mapAuxiliary(auxiliaryPayload);
 
   return {
     ccm1,
-    ccm2,
     motores: motors,
-    dashboard: buildDashboard(ccm1, ccm2, motors),
-    ...truckFlow,
+    dashboard: buildDashboard(ccm1, motors),
+    equipamentosAuxiliares,
     alarmes: motors
       .filter((motor) => motor.status === 'falha')
       .map((motor, index) => ({
@@ -318,6 +337,6 @@ export const loadDashboardData = async (signal) => {
 
 export const apiConfig = {
   ccm1TagsUrl: resolveUrl(CCM1_TAGS_PATH),
-  ccm2TagsUrl: CCM2_TAGS_PATH ? resolveUrl(CCM2_TAGS_PATH) : null,
   motorsUrl: resolveUrl(MOTORS_PATH),
+  auxiliaryUrl: resolveUrl(AUXILIARY_PATH),
 };

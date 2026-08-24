@@ -3,9 +3,12 @@ import { Box, Typography, Chip, useTheme, IconButton, alpha } from '@mui/materia
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import { glassCardSx } from '../theme';
 import DataCard from '../components/DataCard';
+import DonutChart from '../components/DonutChart';
 import LoadBarChart from '../components/LoadBarChart';
 import LoadChart from '../components/LoadChart';
 import PowerBarsChart from '../components/PowerBarsChart';
+import Semaphore from '../components/Semaphore';
+import TruckCounter from '../components/TruckCounter';
 import useCcm1Data from '../hooks/useCcm1Data';
 
 const formatReading = (value, unit) => (
@@ -14,9 +17,10 @@ const formatReading = (value, unit) => (
 
 const formatSubReading = (value) => value ?? '—';
 
-export default function CCM1Page({ data }) {
+export default function CCMPage({ data }) {
   const theme = useTheme();
   const ccm1Data = data.ccm1;
+  const { britadorPrimario, semaforo, contadorCaminhoes } = data.equipamentosAuxiliares;
   const { power, motorLoads, loading, powerError } = useCcm1Data();
   const multimedidorRef = useRef(null);
   const topoRef = useRef(null);
@@ -168,6 +172,89 @@ export default function CCM1Page({ data }) {
           <IconButton onClick={scrollToTopo} sx={{ color: 'text.secondary' }}>
             <KeyboardArrowUp />
           </IconButton>
+        </Box>
+
+        <Box component="section">
+          <Typography variant="h6" color="text.primary" sx={{ mb: 1.5, fontWeight: 700 }}>
+            Equipamentos auxiliares
+          </Typography>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                lg: 'repeat(3, minmax(0, 1fr))',
+              },
+              gap: 2,
+            }}
+          >
+            <Box
+              sx={{
+                ...glassCardSx(theme),
+                p: 2.5,
+                minHeight: 230,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1.5,
+              }}
+            >
+              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase', textAlign: 'center' }}>
+                Potência do britador primário
+              </Typography>
+              <DonutChart value={britadorPrimario.potenciaPercentual} maxValue={100} label="Potência utilizada" size="large" />
+              <Chip
+                label={britadorPrimario.status === 'good' ? 'Dados disponíveis' : 'Aguardando configuração'}
+                color={britadorPrimario.status === 'good' ? 'success' : 'default'}
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+
+            <Box
+              sx={{
+                ...glassCardSx(theme),
+                p: 2.5,
+                minHeight: 230,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1.5,
+              }}
+            >
+              <Typography variant="subtitle2" color="text.secondary" sx={{ fontWeight: 700, textTransform: 'uppercase' }}>
+                Semáforo
+              </Typography>
+              <Semaphore estado={semaforo.estado} />
+              <Chip
+                label={semaforo.status === 'good' ? 'Dados disponíveis' : 'Aguardando configuração'}
+                color={semaforo.status === 'good' ? 'success' : 'default'}
+                size="small"
+                variant="outlined"
+              />
+            </Box>
+
+            <Box
+              sx={{
+                ...glassCardSx(theme),
+                p: 2.5,
+                minHeight: 230,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gridColumn: { sm: '1 / -1', lg: 'auto' },
+              }}
+            >
+              <TruckCounter
+                contagem={contadorCaminhoes.contagem}
+                meta={contadorCaminhoes.meta}
+                ultimoPulso={contadorCaminhoes.ultimoPulso}
+              />
+            </Box>
+          </Box>
         </Box>
 
         <Box

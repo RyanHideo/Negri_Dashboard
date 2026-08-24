@@ -2,10 +2,9 @@ import React from 'react';
 import { Box } from '@mui/material';
 
 const Semaphore = ({ estado = 'desligado' }) => {
-  // estado: 'verde', 'amarelo', 'vermelho', 'desligado'
+  // estado: 'verde', 'vermelho' ou 'desligado'
   const colors = {
     vermelho: '#ef4444',
-    amarelo: '#f59e0b',
     verde: '#06d6a0',
   };
 
@@ -38,11 +37,6 @@ const Semaphore = ({ estado = 'desligado' }) => {
           '50%': { boxShadow: `0 0 25px ${colors.vermelho}, 0 0 10px ${colors.vermelho}` },
           '100%': { boxShadow: `0 0 15px ${colors.vermelho}` },
         },
-        '@keyframes pulse-amarelo': {
-          '0%': { boxShadow: `0 0 15px ${colors.amarelo}` },
-          '50%': { boxShadow: `0 0 25px ${colors.amarelo}, 0 0 10px ${colors.amarelo}` },
-          '100%': { boxShadow: `0 0 15px ${colors.amarelo}` },
-        },
         '@keyframes pulse-verde': {
           '0%': { boxShadow: `0 0 15px ${colors.verde}` },
           '50%': { boxShadow: `0 0 25px ${colors.verde}, 0 0 10px ${colors.verde}` },
@@ -51,7 +45,6 @@ const Semaphore = ({ estado = 'desligado' }) => {
       }}
     >
       <Box sx={getStyle('vermelho', estado === 'vermelho')} />
-      <Box sx={getStyle('amarelo', estado === 'amarelo')} />
       <Box sx={getStyle('verde', estado === 'verde')} />
     </Box>
   );

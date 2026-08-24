@@ -52,7 +52,7 @@ export function mapCcm1Motors(payload) {
   const motors = Array.isArray(payload) ? payload : payload?.motors;
   if (!Array.isArray(motors)) return [];
   return motors
-    .filter((motor) => String(motor?.ccm).toLowerCase() === 'ccm1' && motor?.name)
+    .filter((motor) => motor?.name)
     .map((motor) => ({
       ...motor,
       reactKey: `${String(motor.ccm).toLowerCase()}:${motor.id ?? motor.name}`,

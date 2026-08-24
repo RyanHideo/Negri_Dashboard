@@ -3,12 +3,9 @@ import { Alert, Box, Button, CssBaseline, LinearProgress, ThemeProvider } from '
 import { createAppTheme } from './theme';
 
 import Header from './components/Header';
-import CCM1Page from './pages/CCM1Page';
-import CCM2Page from './pages/CCM2Page';
+import CCMPage from './pages/CCMPage';
 import MotoresPage from './pages/MotoresPage';
 import { DataProvider, useDashboardData } from './data/DataContext';
-
-const TAB_LABELS = ['CCM 1', 'CCM 2', 'Motores'];
 
 function App() {
   const [darkMode, setDarkMode] = useState(true);
@@ -44,13 +41,11 @@ function App() {
   const renderPage = () => {
     switch (currentTab) {
       case 0:
-        return <CCM1Page data={data} />;
+        return <CCMPage data={data} />;
       case 1:
-        return <CCM2Page data={data} />;
-      case 2:
         return <MotoresPage data={data} />;
       default:
-        return <CCM1Page data={data} />;
+        return <CCMPage data={data} />;
     }
   };
 
@@ -73,7 +68,6 @@ function App() {
           onTabChange={handleTabChange}
           darkMode={darkMode}
           onToggleTheme={handleToggleTheme}
-          tabLabels={TAB_LABELS}
         />
         {loading && <LinearProgress sx={{ flexShrink: 0 }} />}
         {error && (
@@ -86,7 +80,7 @@ function App() {
             )}
             sx={{ borderRadius: 0, flexShrink: 0 }}
           >
-            API do CCM1 indisponível. O painel continuará aberto e tentará novamente automaticamente.
+            API do CCM indisponível. O painel continuará aberto e tentará novamente automaticamente.
             {lastSuccessfulAt && ` Última leitura válida: ${lastSuccessfulAt.toLocaleTimeString('pt-BR')}.`}
           </Alert>
         )}
