@@ -4,7 +4,7 @@ import { appendPowerPoint, calculateGeneralLoad, mapCcm1MotorLoads, mapCcm1Motor
 import { CCM1_MOCK_ENABLED, ccm1PowerPreview, createMotorLoadPreview } from '../data/ccm1PreviewData';
 
 export default function useCcm1Data() {
-  const [power, setPower] = useState({ mainTransformer: [], vsiTransformer: [] });
+  const [power, setPower] = useState({ mainTransformer: [], vsiTransformer: [], general: [] });
   const [motors, setMotors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [powerError, setPowerError] = useState(null);
@@ -32,6 +32,7 @@ export default function useCcm1Data() {
         setPower((previous) => ({
           mainTransformer: appendPowerPoint(previous.mainTransformer, snapshot.mainTransformer),
           vsiTransformer: appendPowerPoint(previous.vsiTransformer, snapshot.vsiTransformer),
+          general: appendPowerPoint(previous.general, snapshot.general),
         }));
         setPowerError(null);
       } else {
@@ -50,10 +51,6 @@ export default function useCcm1Data() {
     return () => { active = false; window.clearInterval(timer); controller?.abort(); };
   }, []);
 
-  const general = useMemo(
-    () => calculateGeneralLoad(power.mainTransformer, power.vsiTransformer),
-    [power.mainTransformer, power.vsiTransformer],
-  );
   const liveMotorLoads = useMemo(() => mapCcm1MotorLoads(motors), [motors]);
   const previewGeneral = useMemo(
     () => calculateGeneralLoad(ccm1PowerPreview.mainTransformer, ccm1PowerPreview.vsiTransformer),
@@ -64,7 +61,7 @@ export default function useCcm1Data() {
   return {
     power: CCM1_MOCK_ENABLED
       ? { ...ccm1PowerPreview, general: previewGeneral }
-      : { ...power, general },
+      : power,
     motorLoads: CCM1_MOCK_ENABLED ? previewMotorLoads : liveMotorLoads,
     loading: CCM1_MOCK_ENABLED ? false : loading,
     powerError: CCM1_MOCK_ENABLED ? null : powerError,

@@ -78,8 +78,22 @@ const createEmptyCcm = (id) => ({
   cargaPercentual: null,
   capacidade: { valor: null, total: null, unidade: 'kVA' },
   potenciaVSI: {
-    potencia1: { nome: 'Potência 1', valor: null, maximo: null, unidade: 'kW' },
-    potencia2: { nome: 'Potência 2', valor: null, maximo: null, unidade: 'kW' },
+    potencia1: {
+      nome: 'Potência 1 VSI',
+      valor: null,
+      unidade: 'kW',
+      maximoKw: null,
+      comparativoKva: null,
+      maximoComparativoKva: null,
+    },
+    potencia2: {
+      nome: 'Potência 2 VSI',
+      valor: null,
+      unidade: 'kW',
+      maximoKw: null,
+      comparativoKva: null,
+      maximoComparativoKva: null,
+    },
   },
 });
 
@@ -96,6 +110,12 @@ const mapCcm = (id, payload) => {
   // O registrador do CLP informa décimos de hertz: 600 representa 60,0 Hz.
   const frequency = rawFrequency === null ? null : roundToTwo(rawFrequency * 0.1);
   const consumption = readTag(tags, ['CONSUMO']);
+  const vsiPower1 = readTag(tags, ['Potencia1Vsi']);
+  const vsiPower2 = readTag(tags, ['Potencia2Vsi']);
+  const vsiPower1ComparisonKva = readTag(tags, ['Potencia1VsiComparativoKva']);
+  const vsiPower2ComparisonKva = readTag(tags, ['Potencia2VsiComparativoKva']);
+  const vsiMaximumPowerKw = readTag(tags, ['PotenciaMaximaVsiKw']);
+  const vsiMaximumComparisonKva = readTag(tags, ['PotenciaMaximaVsiComparativoKva']);
 
   return {
     ...base,
@@ -124,6 +144,24 @@ const mapCcm = (id, payload) => {
     fatorPotencia: { valor: powerFactor, unidade: 'cos φ', status: readingStatus(powerFactor) },
     frequencia: { valor: frequency, unidade: 'Hz', status: readingStatus(frequency) },
     consumoTotal: { valor: consumption, unidade: 'kWh', status: readingStatus(consumption) },
+    potenciaVSI: {
+      potencia1: {
+        nome: 'Potência 1 VSI',
+        valor: vsiPower1,
+        unidade: 'kW',
+        maximoKw: vsiMaximumPowerKw,
+        comparativoKva: vsiPower1ComparisonKva,
+        maximoComparativoKva: vsiMaximumComparisonKva,
+      },
+      potencia2: {
+        nome: 'Potência 2 VSI',
+        valor: vsiPower2,
+        unidade: 'kW',
+        maximoKw: vsiMaximumPowerKw,
+        comparativoKva: vsiPower2ComparisonKva,
+        maximoComparativoKva: vsiMaximumComparisonKva,
+      },
+    },
   };
 };
 

@@ -1,13 +1,18 @@
 import React from 'react';
 import { Box, Typography, useTheme, Chip } from '@mui/material';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 
 const LoadBarChart = ({ data = [] }) => {
   const theme = useTheme();
+  const validLoads = data.filter((motor) => motor.carga !== null && Number.isFinite(Number(motor.carga)));
+  const maximumLoad = validLoads.reduce((maximum, motor) => Math.max(maximum, Number(motor.carga)), 100);
+  const yDomainMaximum = Math.max(110, Math.ceil(maximumLoad / 10) * 10);
+  const hasOverload = validLoads.some((motor) => Number(motor.carga) > 100);
 
   const getColor = (percent) => {
+    if (percent === null || !Number.isFinite(Number(percent))) return theme.palette.text.disabled;
     if (percent <= 60) return theme.palette.success.main;
-    if (percent <= 85) return theme.palette.warning.main;
+    if (percent <= 100) return theme.palette.warning.main;
     return theme.palette.error.main;
   };
 
@@ -28,7 +33,7 @@ const LoadBarChart = ({ data = [] }) => {
             {nomeCompleto}
           </Typography>
           <Typography variant="body2" sx={{ color: getColor(carga), fontWeight: 'bold' }}>
-            Carga: {carga}%
+            {carga === null ? 'Leitura indisponível' : `Carga: ${carga}%${carga > 100 ? ' — SOBRECARGA' : ''}`}
           </Typography>
         </Box>
       );
@@ -43,11 +48,11 @@ const LoadBarChart = ({ data = [] }) => {
           Percentual de Carga dos Motores
         </Typography>
         <Chip
-          label={data.length > 0 ? 'TEMPO REAL' : 'SEM DADOS'}
+          label={hasOverload ? 'SOBRECARGA' : data.length > 0 ? `${validLoads.length}/${data.length} LEITURAS` : 'SEM DADOS'}
           size="small"
           sx={{
-            bgcolor: theme.palette.success.main + '20',
-            color: theme.palette.success.main,
+            bgcolor: (hasOverload ? theme.palette.error.main : theme.palette.success.main) + '20',
+            color: hasOverload ? theme.palette.error.main : theme.palette.success.main,
             fontWeight: 'bold',
             fontSize: '0.65rem',
             height: 22,
@@ -75,11 +80,18 @@ const LoadBarChart = ({ data = [] }) => {
               height={48}
             />
             <YAxis
-              domain={[0, 100]}
+              domain={[0, yDomainMaximum]}
               tick={{ fill: theme.palette.text.secondary, fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) => `${v}%`}
+            />
+            <ReferenceLine
+              y={100}
+              stroke={theme.palette.error.main}
+              strokeWidth={2}
+              strokeDasharray="6 4"
+              label={{ value: '100%', position: 'insideTopRight', fill: theme.palette.error.main, fontSize: 11 }}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }} />
             <Bar dataKey="carga" radius={[4, 4, 0, 0]} maxBarSize={40} isAnimationActive={true}>

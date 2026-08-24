@@ -1,6 +1,8 @@
-// TODO(backend): configure these names when the definitive Modbus tags are published.
-// KW is deliberately not mapped because it is documented only as total power.
-export const CCM1_POWER_TAGS = Object.freeze({ mainTransformer: null, vsiTransformer: null });
+export const CCM1_POWER_TAGS = Object.freeze({
+  mainTransformer: 'KW',
+  vsiTransformer: 'PotenciaTrafoVsiKva',
+  general: 'PotenciaGeralKva',
+});
 
 const isGoodReading = (reading) =>
   String(reading?.quality ?? '').toUpperCase() === 'GOOD'
@@ -22,7 +24,12 @@ function toPowerPoint(reading) {
 export function mapCcm1PowerSnapshot(snapshot) {
   const mainReading = snapshot?.mainTransformer ?? findTag(snapshot, CCM1_POWER_TAGS.mainTransformer);
   const vsiReading = snapshot?.vsiTransformer ?? findTag(snapshot, CCM1_POWER_TAGS.vsiTransformer);
-  return { mainTransformer: toPowerPoint(mainReading), vsiTransformer: toPowerPoint(vsiReading) };
+  const generalReading = snapshot?.general ?? findTag(snapshot, CCM1_POWER_TAGS.general);
+  return {
+    mainTransformer: toPowerPoint(mainReading),
+    vsiTransformer: toPowerPoint(vsiReading),
+    general: toPowerPoint(generalReading),
+  };
 }
 
 export function appendPowerPoint(series, point, limit = 60) {
@@ -48,22 +55,45 @@ export function mapCcm1Motors(payload) {
     .filter((motor) => String(motor?.ccm).toLowerCase() === 'ccm1' && motor?.name)
     .map((motor) => ({
       ...motor,
-      reactKey: `${String(motor.ccm).toLowerCase()}:${motor.name}`,
-      current: Number.isFinite(Number(motor.current)) ? Number(motor.current) : null,
-      hours: Number.isFinite(Number(motor.hours)) ? Number(motor.hours) : null,
+      reactKey: `${String(motor.ccm).toLowerCase()}:${motor.id ?? motor.name}`,
+      current: motor.current !== null && motor.current !== undefined && Number.isFinite(Number(motor.current))
+        ? Number(motor.current)
+        : null,
+      hours: motor.hours !== null && motor.hours !== undefined && Number.isFinite(Number(motor.hours))
+        ? Number(motor.hours)
+        : null,
     }));
 }
 
 // TODO(backend): confirm the definitive field name for motor load percentage.
 export function mapCcm1MotorLoads(motors = []) {
-  return motors.flatMap((motor) => {
-    const loadPercentage = Number(motor?.loadPercentage);
-    if (!Number.isFinite(loadPercentage) || loadPercentage < 0 || loadPercentage > 100) return [];
-    return [{
-      reactKey: motor.reactKey,
-      nome: motor.name.length > 18 ? `${motor.name.slice(0, 17)}…` : motor.name,
-      nomeCompleto: motor.name,
-      carga: loadPercentage,
-    }];
-  });
+  return motors
+    .flatMap((motor) => {
+      const motorNumber = Number(String(motor?.id ?? '').match(/^M(\d+)$/i)?.[1]);
+      if (!Number.isInteger(motorNumber) || motorNumber < 1 || motorNumber > 11) return [];
+
+      const apiLoad = motor?.loadPercentage;
+      const current = motor?.current === null || motor?.current === undefined
+        ? null
+        : Number(motor.current);
+      const nominalCurrent = Number(motor?.nominalCurrent);
+      const calculatedLoad = current !== null && Number.isFinite(current) && Number.isFinite(nominalCurrent) && nominalCurrent > 0
+        ? (current / nominalCurrent) * 100
+        : null;
+      const loadPercentage = apiLoad === null || apiLoad === undefined
+        ? calculatedLoad
+        : Number(apiLoad);
+
+      return [{
+        reactKey: motor.reactKey,
+        motorNumber,
+        nome: motor.name.length > 18 ? `${motor.name.slice(0, 17)}…` : motor.name,
+        nomeCompleto: motor.name,
+        carga: Number.isFinite(loadPercentage) && loadPercentage >= 0
+          ? Math.round(loadPercentage * 10) / 10
+          : null,
+      }];
+    })
+    .sort((a, b) => a.motorNumber - b.motorNumber)
+    .slice(0, 11);
 }

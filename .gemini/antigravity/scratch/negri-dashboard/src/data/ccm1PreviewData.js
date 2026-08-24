@@ -1,5 +1,5 @@
-// Altere somente este valor para ativar ou desativar os mocks dos novos gráficos da CCM1.
-export const CCM1_MOCK_ENABLED = true;
+// A tela usa somente as leituras reais da API. Os dados abaixo ficam disponíveis para desenvolvimento manual.
+export const CCM1_MOCK_ENABLED = false;
 
 const mainValues = [342, 346, 353, 349, 357, 361, 358, 365, 368, 364, 371, 374];
 const vsiValues = [142, 146, 149, 151, 148, 153, 156, 158, 161, 159, 164, 166];

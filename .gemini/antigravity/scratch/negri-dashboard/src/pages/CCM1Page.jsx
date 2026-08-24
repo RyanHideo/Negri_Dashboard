@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { Box, Typography, Chip, useTheme, IconButton, alpha } from '@mui/material';
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
-import { ccm1Data } from '../data/mockData';
 import { glassCardSx } from '../theme';
 import DataCard from '../components/DataCard';
 import LoadBarChart from '../components/LoadBarChart';
@@ -9,8 +8,15 @@ import LoadChart from '../components/LoadChart';
 import PowerBarsChart from '../components/PowerBarsChart';
 import useCcm1Data from '../hooks/useCcm1Data';
 
-export default function CCM1Page() {
+const formatReading = (value, unit) => (
+  value === null || value === undefined ? '—' : `${value} ${unit}`
+);
+
+const formatSubReading = (value) => value ?? '—';
+
+export default function CCM1Page({ data }) {
   const theme = useTheme();
+  const ccm1Data = data.ccm1;
   const { power, motorLoads, loading, powerError } = useCcm1Data();
   const multimedidorRef = useRef(null);
   const topoRef = useRef(null);
@@ -97,12 +103,21 @@ export default function CCM1Page() {
           </Box>
 
           {[
-            { title: 'Carga do Trafo Principal', data: power.mainTransformer, capacityKva: 500 },
-            { title: 'Carga do Trafo VSI', data: power.vsiTransformer, capacityKva: 300 },
-            { title: 'Carga Geral', data: power.general, capacityKva: 800 },
-          ].map(({ title, data, capacityKva }) => (
+            { title: 'Carga do Trafo Principal', data: power.mainTransformer, graphMaximumKva: 600, overloadThresholdKva: 500 },
+            { title: 'Carga do Trafo VSI', data: power.vsiTransformer, graphMaximumKva: 500, overloadThresholdKva: 300 },
+            { title: 'Carga Geral', data: power.general, graphMaximumKva: 1000, overloadThresholdKva: 800 },
+          ].map(({ title, data, graphMaximumKva, overloadThresholdKva }) => (
             <Box key={title} sx={{ ...glassCardSx(theme), p: 2, gridColumn: { xs: 'auto', md: 'span 2' }, minHeight: { xs: 260, md: 0 } }}>
-              <LoadChart title={title} data={data} maxValue={capacityKva} capacityKva={capacityKva} loading={loading} error={powerError} />
+              <LoadChart
+                title={title}
+                data={data}
+                unit="kVA"
+                maxValue={graphMaximumKva}
+                capacityKva={graphMaximumKva}
+                overloadThresholdKva={overloadThresholdKva}
+                loading={loading}
+                error={powerError}
+              />
             </Box>
           ))}
         </Box>
@@ -166,54 +181,54 @@ export default function CCM1Page() {
         >
           <DataCard
             title="Tensão L-L"
-            value={`${ccm1Data.tensaoLL.l1l2} ${ccm1Data.tensaoLL.unidade}`}
+            value={formatReading(ccm1Data.tensaoLL.l1l2, ccm1Data.tensaoLL.unidade)}
             subValues={[
-              { label: 'L1-L2', value: ccm1Data.tensaoLL.l1l2 },
-              { label: 'L2-L3', value: ccm1Data.tensaoLL.l2l3 },
-              { label: 'L3-L1', value: ccm1Data.tensaoLL.l3l1 },
+              { label: 'L1-L2', value: formatSubReading(ccm1Data.tensaoLL.l1l2) },
+              { label: 'L2-L3', value: formatSubReading(ccm1Data.tensaoLL.l2l3) },
+              { label: 'L3-L1', value: formatSubReading(ccm1Data.tensaoLL.l3l1) },
             ]}
           />
           <DataCard
             title="Tensão L-N"
-            value={`${ccm1Data.tensaoLN.l1n} ${ccm1Data.tensaoLN.unidade}`}
+            value={formatReading(ccm1Data.tensaoLN.l1n, ccm1Data.tensaoLN.unidade)}
             subValues={[
-              { label: 'L1-N', value: ccm1Data.tensaoLN.l1n },
-              { label: 'L2-N', value: ccm1Data.tensaoLN.l2n },
-              { label: 'L3-N', value: ccm1Data.tensaoLN.l3n },
+              { label: 'L1-N', value: formatSubReading(ccm1Data.tensaoLN.l1n) },
+              { label: 'L2-N', value: formatSubReading(ccm1Data.tensaoLN.l2n) },
+              { label: 'L3-N', value: formatSubReading(ccm1Data.tensaoLN.l3n) },
             ]}
           />
           <DataCard
             title="Corrente"
-            value={`${ccm1Data.corrente.i1} ${ccm1Data.corrente.unidade}`}
+            value={formatReading(ccm1Data.corrente.i1, ccm1Data.corrente.unidade)}
             subValues={[
-              { label: 'I1', value: ccm1Data.corrente.i1 },
-              { label: 'I2', value: ccm1Data.corrente.i2 },
-              { label: 'I3', value: ccm1Data.corrente.i3 },
+              { label: 'I1', value: formatSubReading(ccm1Data.corrente.i1) },
+              { label: 'I2', value: formatSubReading(ccm1Data.corrente.i2) },
+              { label: 'I3', value: formatSubReading(ccm1Data.corrente.i3) },
             ]}
           />
           <DataCard
             title="Potência Ativa"
-            value={`${ccm1Data.potencia.ativa} ${ccm1Data.potencia.unidade}`}
+            value={formatReading(ccm1Data.potencia.ativa, ccm1Data.potencia.unidade)}
             status={ccm1Data.potencia.status}
           />
           <DataCard
             title="Fator de Potência"
-            value={`${ccm1Data.fatorPotencia.valor} ${ccm1Data.fatorPotencia.unidade}`}
+            value={formatReading(ccm1Data.fatorPotencia.valor, ccm1Data.fatorPotencia.unidade)}
             status={ccm1Data.fatorPotencia.status}
           />
           <DataCard
             title="Frequência"
-            value={`${ccm1Data.frequencia.valor} ${ccm1Data.frequencia.unidade}`}
+            value={formatReading(ccm1Data.frequencia.valor, ccm1Data.frequencia.unidade)}
             status={ccm1Data.frequencia.status}
           />
           <DataCard
             title="Consumo Total"
-            value={`${ccm1Data.consumoTotal.valor} ${ccm1Data.consumoTotal.unidade}`}
+            value={formatReading(ccm1Data.consumoTotal.valor, ccm1Data.consumoTotal.unidade)}
             status={ccm1Data.consumoTotal.status}
           />
           <DataCard
             title="Temperatura"
-            value={`${ccm1Data.temperatura.valor} ${ccm1Data.temperatura.unidade}`}
+            value={formatReading(ccm1Data.temperatura.valor, ccm1Data.temperatura.unidade)}
             status={ccm1Data.temperatura.status}
           />
         </Box>
