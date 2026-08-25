@@ -23,8 +23,10 @@ export default function LoadChart({
   const dynamicMaximum = maxValue
     ? Math.max(maxValue, Math.ceil(greatestValue / 50) * 50)
     : 'auto';
+  const latestValue = chartData.length > 0 ? Number(chartData.at(-1)?.value) : null;
   const isOverloaded = Boolean(overloadThresholdKva)
-    && chartData.some((point) => Number(point.value) > overloadThresholdKva);
+    && Number.isFinite(latestValue)
+    && latestValue > overloadThresholdKva;
   return (
     <Box sx={{ width: '100%', height: '100%', minHeight: { xs: 220, md: 0 }, display: 'flex', flexDirection: 'column' }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 1 }}>

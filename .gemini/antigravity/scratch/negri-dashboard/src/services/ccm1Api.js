@@ -7,4 +7,5 @@ async function getJson(path, signal) {
 }
 
 export const getCcm1TagSnapshot = (signal) => getJson('/api/modbus/ccm1/tags', signal);
+export const getCcm1PowerHistory = (signal) => getJson('/api/power/history', signal);
 export const getMotorsOverview = (signal) => getJson('/api/motors/overview', signal);

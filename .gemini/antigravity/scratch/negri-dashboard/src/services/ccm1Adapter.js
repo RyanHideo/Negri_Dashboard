@@ -32,6 +32,28 @@ export function mapCcm1PowerSnapshot(snapshot) {
   };
 }
 
+function normalizePowerHistorySeries(series) {
+  if (!Array.isArray(series)) return [];
+  return series
+    .flatMap((reading) => {
+      const timestamp = reading?.timestamp ?? reading?.ts;
+      const value = Number(reading?.value);
+      const quality = String(reading?.quality ?? '').toUpperCase();
+      if (!timestamp || quality !== 'GOOD' || !Number.isFinite(value)) return [];
+      return [{ timestamp, value, quality }];
+    })
+    .sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    .slice(-10);
+}
+
+export function mapCcm1PowerHistory(payload) {
+  return {
+    mainTransformer: normalizePowerHistorySeries(payload?.mainTransformer),
+    vsiTransformer: normalizePowerHistorySeries(payload?.vsiTransformer),
+    general: normalizePowerHistorySeries(payload?.general),
+  };
+}
+
 export function appendPowerPoint(series, point, limit = 60) {
   if (!point) return series;
   return [...series.filter((item) => item.timestamp !== point.timestamp), point]
