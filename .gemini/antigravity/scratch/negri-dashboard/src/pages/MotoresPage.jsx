@@ -19,9 +19,11 @@ const MotoresPage = ({ data }) => {
     <Box
       sx={{
         display: 'grid',
-        gridTemplateRows: 'auto auto 1fr',
-        gap: 2,
-        height: { xs: 'auto', md: '100%' },
+        gridTemplateRows: 'auto auto minmax(0, 1fr)',
+        gap: { xs: 1, md: 2 },
+        height: '100%',
+        minHeight: 0,
+        overflow: 'hidden',
         p: { xs: 1, md: 1.5, lg: 2 },
       }}
     >
@@ -29,21 +31,21 @@ const MotoresPage = ({ data }) => {
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-          gap: 2,
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: { xs: 1, md: 2 },
         }}
       >
-        <Box sx={{ ...glassCardSx(theme), p: 2, textAlign: 'center', borderBottom: `4px solid ${theme.palette.success.main}` }}>
-          <Typography variant="h4" color="success.main">{dashboardData.motoresLigados}</Typography>
-          <Typography variant="subtitle1" color="text.secondary">Ligados</Typography>
+        <Box sx={{ ...glassCardSx(theme), minWidth: 0, p: { xs: 1, md: 2 }, textAlign: 'center', borderBottom: `4px solid ${theme.palette.success.main}` }}>
+          <Typography variant="h4" color="success.main" sx={{ fontSize: { xs: '1.5rem', md: '2.125rem' }, lineHeight: 1.15 }}>{dashboardData.motoresLigados}</Typography>
+          <Typography variant="subtitle1" color="text.secondary" sx={{ fontSize: { xs: '0.72rem', md: '1rem' }, lineHeight: 1.3 }}>Ligados</Typography>
         </Box>
-        <Box sx={{ ...glassCardSx(theme), p: 2, textAlign: 'center', borderBottom: `4px solid ${theme.palette.text.disabled}` }}>
-          <Typography variant="h4" color="text.disabled">{dashboardData.motoresDesligados}</Typography>
-          <Typography variant="subtitle1" color="text.secondary">Desligados</Typography>
+        <Box sx={{ ...glassCardSx(theme), minWidth: 0, p: { xs: 1, md: 2 }, textAlign: 'center', borderBottom: `4px solid ${theme.palette.text.disabled}` }}>
+          <Typography variant="h4" color="text.disabled" sx={{ fontSize: { xs: '1.5rem', md: '2.125rem' }, lineHeight: 1.15 }}>{dashboardData.motoresDesligados}</Typography>
+          <Typography variant="subtitle1" color="text.secondary" sx={{ fontSize: { xs: '0.72rem', md: '1rem' }, lineHeight: 1.3 }}>Desligados</Typography>
         </Box>
-        <Box sx={{ ...glassCardSx(theme), p: 2, textAlign: 'center', borderBottom: `4px solid ${theme.palette.error.main}` }}>
-          <Typography variant="h4" color="error.main">{dashboardData.motoresFalha}</Typography>
-          <Typography variant="subtitle1" color="text.secondary">Falha</Typography>
+        <Box sx={{ ...glassCardSx(theme), minWidth: 0, p: { xs: 1, md: 2 }, textAlign: 'center', borderBottom: `4px solid ${theme.palette.error.main}` }}>
+          <Typography variant="h4" color="error.main" sx={{ fontSize: { xs: '1.5rem', md: '2.125rem' }, lineHeight: 1.15 }}>{dashboardData.motoresFalha}</Typography>
+          <Typography variant="subtitle1" color="text.secondary" sx={{ fontSize: { xs: '0.72rem', md: '1rem' }, lineHeight: 1.3 }}>Falha</Typography>
         </Box>
       </Box>
 
@@ -51,10 +53,10 @@ const MotoresPage = ({ data }) => {
       <Box
         sx={{
           ...glassCardSx(theme),
-          p: 2,
+          p: { xs: 1, md: 2 },
           display: 'flex',
           flexWrap: 'wrap',
-          gap: 2,
+          gap: { xs: 1, md: 2 },
           alignItems: 'center',
           justifyContent: 'space-between',
         }}
@@ -75,7 +77,7 @@ const MotoresPage = ({ data }) => {
             </Select>
           </FormControl>
         </Box>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', md: '0.875rem' } }}>
           Mostrando {filteredMotores.length} motores
         </Typography>
       </Box>
@@ -83,15 +85,20 @@ const MotoresPage = ({ data }) => {
       {/* Row 3: Motor Cards Grid */}
       <Box
         sx={{
+          minHeight: 0,
           overflowY: 'auto',
-          pr: 1, // scrollbar spacing
+          overflowX: 'hidden',
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+          touchAction: 'pan-y',
+          pr: { xs: 0.5, md: 1 }, // scrollbar spacing
         }}
       >
         <Box
           sx={{
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-            gap: 2,
+            gap: { xs: 1, md: 2 },
           }}
         >
           {filteredMotores.map((motor) => (
