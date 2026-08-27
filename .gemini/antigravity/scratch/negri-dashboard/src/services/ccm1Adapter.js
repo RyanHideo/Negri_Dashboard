@@ -90,6 +90,18 @@ export function mapCcm1Motors(payload) {
 // TODO(backend): confirm the definitive field name for motor load percentage.
 export function mapCcm1MotorLoads(motors = []) {
   return motors
+    .filter((motor) => {
+      const category = String(motor?.category ?? '').trim().toLowerCase();
+      const name = String(motor?.name ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .toLowerCase();
+
+      const isConveyor = category === 'correia' || /^ct(?:\s|\d)/.test(name);
+      const isUnidentified = name.includes('sem informacao');
+      return !isConveyor && !isUnidentified;
+    })
     .flatMap((motor) => {
       const motorNumber = Number(String(motor?.id ?? '').match(/^M(\d+)$/i)?.[1]);
       if (!Number.isInteger(motorNumber) || motorNumber < 1 || motorNumber > 11) return [];
