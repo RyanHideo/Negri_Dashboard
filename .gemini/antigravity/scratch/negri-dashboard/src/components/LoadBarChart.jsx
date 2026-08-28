@@ -8,6 +8,7 @@ const LoadBarChart = ({ data = [] }) => {
   const maximumLoad = validLoads.reduce((maximum, motor) => Math.max(maximum, Number(motor.carga)), 100);
   const yDomainMaximum = Math.max(110, Math.ceil(maximumLoad / 10) * 10);
   const hasOverload = validLoads.some((motor) => Number(motor.carga) > 100);
+  const labelsByKey = new Map(data.map((motor) => [motor.reactKey, motor.nome]));
 
   const getColor = (percent) => {
     if (percent === null || !Number.isFinite(Number(percent))) return theme.palette.text.disabled;
@@ -71,7 +72,8 @@ const LoadBarChart = ({ data = [] }) => {
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} />
             <XAxis
-              dataKey="nome"
+              dataKey="reactKey"
+              tickFormatter={(reactKey) => labelsByKey.get(reactKey) ?? reactKey}
               tick={{ fill: theme.palette.text.secondary, fontSize: 9 }}
               axisLine={{ stroke: theme.palette.divider }}
               tickLine={false}
@@ -94,7 +96,7 @@ const LoadBarChart = ({ data = [] }) => {
               label={{ value: '100%', position: 'insideTopRight', fill: theme.palette.error.main, fontSize: 11 }}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }} />
-            <Bar dataKey="carga" radius={[4, 4, 0, 0]} maxBarSize={40} isAnimationActive={true}>
+            <Bar dataKey="carga" radius={[4, 4, 0, 0]} maxBarSize={40} isAnimationActive={false}>
               {data.map((entry, index) => (
                 <Cell key={entry.reactKey ?? `cell-${index}`} fill={getColor(entry.carga)} />
               ))}
