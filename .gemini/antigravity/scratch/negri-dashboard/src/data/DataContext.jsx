@@ -3,6 +3,7 @@ import { createEmptyDashboardData, loadDashboardData } from './api';
 
 const POLL_INTERVAL_MS = 2_000;
 const RETRY_INTERVAL_MS = 5_000;
+const COMMUNICATION_WARNING_DELAY_MS = 30_000;
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
@@ -19,6 +20,7 @@ export function DataProvider({ children }) {
   useEffect(() => {
     const controller = new AbortController();
     let timer;
+    let failureStartedAt = null;
 
     const poll = async () => {
       let succeeded = false;
@@ -29,11 +31,18 @@ export function DataProvider({ children }) {
         setData(nextData);
         setLastSuccessfulAt(new Date());
         setError(null);
+        failureStartedAt = null;
         succeeded = true;
       } catch (requestError) {
         if (controller.signal.aborted) return;
 
-        setError(requestError instanceof Error ? requestError : new Error('Não foi possível consultar as tags do CCM1'));
+        const now = Date.now();
+        failureStartedAt ??= now;
+
+        // Oscilações curtas da VPN não devem fazer o aviso piscar na tela.
+        if (now - failureStartedAt >= COMMUNICATION_WARNING_DELAY_MS) {
+          setError(requestError instanceof Error ? requestError : new Error('Não foi possível consultar as tags do CCM1'));
+        }
         // Se já houve uma leitura boa, ela permanece visível durante a falha.
       } finally {
         if (!controller.signal.aborted) {
