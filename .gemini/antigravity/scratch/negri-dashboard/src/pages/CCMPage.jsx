@@ -142,7 +142,7 @@ export default function CCMPage({ data }) {
           }}
         >
           <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            Dados do Multimedidor
+            Container e multimedidor
           </Typography>
           <KeyboardArrowDown sx={{ color: 'text.secondary', fontSize: 28, animation: 'bounce 2s infinite' }} />
           <style>{`@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }`}</style>
@@ -160,24 +160,20 @@ export default function CCMPage({ data }) {
           gap: 2,
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography variant="h5" color="text.primary" sx={{ fontWeight: 700 }}>
-              Multimedidor — {ccm1Data.nome}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Medições elétricas em tempo real
-            </Typography>
-          </Box>
-          <IconButton onClick={scrollToTopo} sx={{ color: 'text.secondary' }}>
-            <KeyboardArrowUp />
-          </IconButton>
-        </Box>
-
         <Box component="section">
-          <Typography variant="h6" color="text.primary" sx={{ mb: 1.5, fontWeight: 700 }}>
-            Container
-          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+            <Box>
+              <Typography variant="h5" color="text.primary" sx={{ fontWeight: 700 }}>
+                Container
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Britador primário, semáforo e contador de caminhões
+              </Typography>
+            </Box>
+            <IconButton onClick={scrollToTopo} sx={{ color: 'text.secondary' }}>
+              <KeyboardArrowUp />
+            </IconButton>
+          </Box>
           <Box
             sx={{
               display: 'grid',
@@ -255,6 +251,15 @@ export default function CCMPage({ data }) {
               />
             </Box>
           </Box>
+        </Box>
+
+        <Box>
+          <Typography variant="h5" color="text.primary" sx={{ fontWeight: 700 }}>
+            Multimedidor — {ccm1Data.nome}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Medições elétricas em tempo real
+          </Typography>
         </Box>
 
         <Box

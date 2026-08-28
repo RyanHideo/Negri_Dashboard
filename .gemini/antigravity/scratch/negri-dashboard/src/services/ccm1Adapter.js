@@ -118,14 +118,14 @@ export function mapCcm1MotorLoads(motors = []) {
         ? calculatedLoad
         : Number(apiLoad);
 
+      if (!Number.isFinite(loadPercentage) || loadPercentage < 0) return [];
+
       return [{
         reactKey: motor.reactKey,
         motorNumber,
         nome: motor.name.length > 18 ? `${motor.name.slice(0, 17)}…` : motor.name,
         nomeCompleto: motor.name,
-        carga: Number.isFinite(loadPercentage) && loadPercentage >= 0
-          ? Math.round(loadPercentage * 10) / 10
-          : null,
+        carga: Math.round(loadPercentage * 10) / 10,
       }];
     })
     .sort((a, b) => a.motorNumber - b.motorNumber)
