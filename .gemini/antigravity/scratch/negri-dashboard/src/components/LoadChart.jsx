@@ -23,7 +23,7 @@ export default function LoadChart({
   const dynamicMaximum = maxValue
     ? Math.max(maxValue, Math.ceil(greatestValue / 50) * 50)
     : 'auto';
-  const latestValue = chartData.length > 0 ? Number(chartData.at(-1)?.value) : null;
+  const latestValue = chartData.length > 0 ? Number(chartData[chartData.length - 1]?.value) : null;
   const isOverloaded = Boolean(overloadThresholdKva)
     && Number.isFinite(latestValue)
     && latestValue > overloadThresholdKva;
@@ -40,7 +40,7 @@ export default function LoadChart({
       {error && <Alert severity="error" sx={{ mb: 1 }}>{error}</Alert>}
       {loading ? <Box sx={{ flex: 1, display: 'grid', placeItems: 'center' }}><CircularProgress size={28} /></Box>
         : chartData.length === 0 ? <Box sx={{ flex: 1, display: 'grid', placeItems: 'center', textAlign: 'center', px: 2 }}><Typography color="text.secondary" variant="body2">Sem leituras válidas disponíveis</Typography></Box>
-          : <Box sx={{ flex: 1, minHeight: 0 }}><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{ top: 16, right: 18, left: 0, bottom: 4 }}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} /><XAxis dataKey="time" tick={{ fill: theme.palette.text.secondary, fontSize: 10 }} tickLine={false} /><YAxis domain={maxValue ? [0, dynamicMaximum] : ['auto', 'auto']} tick={{ fill: theme.palette.text.secondary, fontSize: 10 }} tickLine={false} unit={unit} width={58} />{overloadThresholdKva && <ReferenceLine y={overloadThresholdKva} stroke={theme.palette.error.main} strokeWidth={2} strokeDasharray="6 4" label={{ value: '100%', position: 'insideTopRight', fill: theme.palette.error.main, fontSize: 11 }} />}<Tooltip formatter={(value) => [`${Number(value).toLocaleString('pt-BR')} ${unit}${Number(value) > overloadThresholdKva ? ' — SOBRECARGA' : ''}`, title]} /><Line type="monotone" dataKey="value" stroke={isOverloaded ? theme.palette.error.main : theme.palette.primary.main} strokeWidth={2} dot={false} connectNulls={false} /></LineChart></ResponsiveContainer></Box>}
+          : <Box sx={{ flex: 1, minHeight: 0 }}><ResponsiveContainer width="100%" height="100%"><LineChart data={chartData} margin={{ top: 16, right: 18, left: 0, bottom: 4 }}><CartesianGrid strokeDasharray="3 3" vertical={false} stroke={theme.palette.divider} /><XAxis dataKey="time" tick={{ fill: theme.palette.text.secondary, fontSize: 10 }} tickLine={false} /><YAxis domain={maxValue ? [0, dynamicMaximum] : ['auto', 'auto']} tick={{ fill: theme.palette.text.secondary, fontSize: 10 }} tickLine={false} unit={unit} width={58} />{overloadThresholdKva && <ReferenceLine y={overloadThresholdKva} stroke={theme.palette.error.main} strokeWidth={2} strokeDasharray="6 4" label={{ value: '100%', position: 'insideTopRight', fill: theme.palette.error.main, fontSize: 11 }} />}<Tooltip formatter={(value) => [`${Number(value).toLocaleString('pt-BR')} ${unit}${Number(value) > overloadThresholdKva ? ' — SOBRECARGA' : ''}`, title]} /><Line type="monotone" dataKey="value" stroke={isOverloaded ? theme.palette.error.main : theme.palette.primary.main} strokeWidth={2} dot={false} connectNulls={false} isAnimationActive={false} /></LineChart></ResponsiveContainer></Box>}
     </Box>
   );
 }

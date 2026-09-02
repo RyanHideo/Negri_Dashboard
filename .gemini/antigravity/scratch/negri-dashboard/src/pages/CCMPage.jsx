@@ -21,7 +21,7 @@ export default function CCMPage({ data }) {
   const theme = useTheme();
   const ccm1Data = data.ccm1;
   const { britadorPrimario, semaforo, contadorCaminhoes } = data.equipamentosAuxiliares;
-  const { power, motorLoads, loading, powerError } = useCcm1Data();
+  const { power, motorLoads, loading, powerError } = useCcm1Data(data.motores);
   const multimedidorRef = useRef(null);
   const topoRef = useRef(null);
 
@@ -74,7 +74,11 @@ export default function CCMPage({ data }) {
           sx={{
             flex: 1,
             display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: 'repeat(6, minmax(0, 1fr))' },
+            gridTemplateColumns: {
+              xs: '1fr',
+              md: 'repeat(6, minmax(0, 1fr))',
+              lg: 'repeat(12, minmax(0, 1fr))',
+            },
             gridTemplateRows: { xs: 'auto', md: 'minmax(0, 0.9fr) minmax(0, 1.1fr)' },
             gap: 2,
             minHeight: 0,
@@ -84,11 +88,11 @@ export default function CCMPage({ data }) {
           <Box
             sx={{
               ...glassCardSx(theme),
-              p: 3,
+              p: { xs: 2, lg: 2.5 },
               display: 'flex',
               alignItems: 'stretch',
               justifyContent: 'flex-start',
-              gridColumn: { xs: 'auto', md: 'span 2' },
+              gridColumn: { xs: 'auto', md: 'span 3', lg: 'span 5' },
               minHeight: { xs: 250, md: 0 },
             }}
           >
@@ -99,7 +103,7 @@ export default function CCMPage({ data }) {
             sx={{
               ...glassCardSx(theme),
               p: 2,
-              gridColumn: { xs: 'auto', md: 'span 4' },
+              gridColumn: { xs: 'auto', md: 'span 3', lg: 'span 7' },
               minHeight: { xs: 280, md: 0 },
             }}
           >
@@ -111,7 +115,7 @@ export default function CCMPage({ data }) {
             { title: 'Carga do Trafo VSI', data: power.vsiTransformer, graphMaximumKva: 500, overloadThresholdKva: 300 },
             { title: 'Carga Geral', data: power.general, graphMaximumKva: 1000, overloadThresholdKva: 800 },
           ].map(({ title, data, graphMaximumKva, overloadThresholdKva }) => (
-            <Box key={title} sx={{ ...glassCardSx(theme), p: 2, gridColumn: { xs: 'auto', md: 'span 2' }, minHeight: { xs: 260, md: 0 } }}>
+            <Box key={title} sx={{ ...glassCardSx(theme), p: 2, gridColumn: { xs: 'auto', md: 'span 2', lg: 'span 4' }, minHeight: { xs: 260, md: 0 } }}>
               <LoadChart
                 title={title}
                 data={data}

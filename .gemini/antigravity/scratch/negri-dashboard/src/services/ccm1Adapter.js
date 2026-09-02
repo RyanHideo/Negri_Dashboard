@@ -89,7 +89,22 @@ export function mapCcm1Motors(payload) {
 
 // TODO(backend): confirm the definitive field name for motor load percentage.
 export function mapCcm1MotorLoads(motors = []) {
-  return motors
+  const normalizedMotors = motors.map((motor) => {
+    const id = motor?.id;
+    const name = motor?.name ?? motor?.nome ?? String(id ?? 'Motor');
+    const ccm = motor?.ccm ?? 'ccm1';
+    return {
+      id,
+      name,
+      category: motor?.category ?? motor?.categoria,
+      current: motor?.current ?? motor?.corrente,
+      nominalCurrent: motor?.nominalCurrent ?? motor?.correnteNominal,
+      loadPercentage: motor?.loadPercentage ?? motor?.cargaEstimada,
+      reactKey: motor?.reactKey ?? `${String(ccm).toLowerCase()}:${id ?? name}`,
+    };
+  });
+
+  return normalizedMotors
     .filter((motor) => {
       const category = String(motor?.category ?? '').trim().toLowerCase();
       const name = String(motor?.name ?? '')

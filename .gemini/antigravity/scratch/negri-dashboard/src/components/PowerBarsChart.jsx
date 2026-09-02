@@ -131,7 +131,7 @@ const PowerBarsChart = ({ potenciaVSI = {} }) => {
               label={{ value: '100%', position: 'insideTopRight', fill: theme.palette.error.main, fontSize: 11 }}
             />
             <Tooltip content={<CustomTooltip />} cursor={{ fill: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }} />
-            <Bar dataKey="valor" radius={[0, 6, 6, 0]} maxBarSize={45} isAnimationActive={true}>
+            <Bar dataKey="valor" radius={[0, 6, 6, 0]} maxBarSize={45} isAnimationActive={false}>
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={getColor(entry.percentual)} />
               ))}

@@ -1,21 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getCcm1PowerHistory, getCcm1TagSnapshot, getMotorsOverview } from '../services/ccm1Api';
+import { getCcm1PowerHistory, getCcm1TagSnapshot } from '../services/ccm1Api';
 import {
   appendPowerPoint,
   calculateGeneralLoad,
   mapCcm1MotorLoads,
-  mapCcm1Motors,
   mapCcm1PowerHistory,
   mapCcm1PowerSnapshot,
 } from '../services/ccm1Adapter';
 import { CCM1_MOCK_ENABLED, ccm1PowerPreview, createMotorLoadPreview } from '../data/ccm1PreviewData';
 
-export default function useCcm1Data() {
+const POLL_INTERVAL_MS = 2_000;
+const RETRY_INTERVAL_MS = 5_000;
+const COMMUNICATION_WARNING_DELAY_MS = 30_000;
+
+export default function useCcm1Data(dashboardMotors = []) {
   const [power, setPower] = useState({ mainTransformer: [], vsiTransformer: [], general: [] });
-  const [motors, setMotors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [powerError, setPowerError] = useState(null);
-  const [motorsError, setMotorsError] = useState(null);
 
   useEffect(() => {
     if (CCM1_MOCK_ENABLED) {
@@ -26,17 +27,17 @@ export default function useCcm1Data() {
     let active = true;
     let controller;
     let timer;
+    let failureStartedAt = null;
+
     const refresh = async (includeHistory = false) => {
-      controller?.abort();
       controller = new AbortController();
-      const requests = [
-        getCcm1TagSnapshot(controller.signal),
-        getMotorsOverview(controller.signal),
-      ];
+      const requests = [getCcm1TagSnapshot(controller.signal)];
       if (includeHistory) requests.push(getCcm1PowerHistory(controller.signal));
       const results = await Promise.allSettled(requests);
       if (!active) return;
-      const [powerResult, motorsResult, historyResult] = results;
+      const [powerResult, historyResult] = results;
+      let succeeded = false;
+
       if (powerResult.status === 'fulfilled') {
         const snapshot = mapCcm1PowerSnapshot(powerResult.value);
         const history = historyResult?.status === 'fulfilled'
@@ -51,28 +52,35 @@ export default function useCcm1Data() {
           };
         });
         setPowerError(null);
+        failureStartedAt = null;
+        succeeded = true;
       } else {
-        setPowerError('Não foi possível obter as leituras de potência.');
+        const now = Date.now();
+        if (failureStartedAt === null) failureStartedAt = now;
+        if (now - failureStartedAt >= COMMUNICATION_WARNING_DELAY_MS) {
+          setPowerError('Não foi possível obter as leituras de potência.');
+        }
       }
-      if (motorsResult.status === 'fulfilled') {
-        setMotors(mapCcm1Motors(motorsResult.value));
-        setMotorsError(null);
-      } else {
-        setMotorsError('Não foi possível obter os motores do CCM1.');
-      }
+
       setLoading(false);
+      if (active) {
+        timer = window.setTimeout(
+          () => { void refresh(false); },
+          succeeded ? POLL_INTERVAL_MS : RETRY_INTERVAL_MS,
+        );
+      }
     };
-    refresh(true).finally(() => {
-      if (active) timer = window.setInterval(refresh, 1000);
-    });
+
+    void refresh(true);
+
     return () => {
       active = false;
-      if (timer) window.clearInterval(timer);
+      if (timer) window.clearTimeout(timer);
       controller?.abort();
     };
   }, []);
 
-  const liveMotorLoads = useMemo(() => mapCcm1MotorLoads(motors), [motors]);
+  const liveMotorLoads = useMemo(() => mapCcm1MotorLoads(dashboardMotors), [dashboardMotors]);
   const previewGeneral = useMemo(
     () => calculateGeneralLoad(ccm1PowerPreview.mainTransformer, ccm1PowerPreview.vsiTransformer),
     [],
@@ -86,6 +94,5 @@ export default function useCcm1Data() {
     motorLoads: CCM1_MOCK_ENABLED ? previewMotorLoads : liveMotorLoads,
     loading: CCM1_MOCK_ENABLED ? false : loading,
     powerError: CCM1_MOCK_ENABLED ? null : powerError,
-    motorsError: CCM1_MOCK_ENABLED ? null : motorsError,
   };
 }
