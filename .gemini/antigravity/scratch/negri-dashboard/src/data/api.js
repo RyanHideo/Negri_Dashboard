@@ -191,6 +191,13 @@ const mapMotors = (payload) => {
   return payload.map((motor, index) => {
     const id = inferMotorId(motor, index);
     const current = roundToTwo(motor?.current);
+    const nominalCurrent = roundToTwo(motor?.nominalCurrent);
+    const apiLoadPercentage = roundToTwo(motor?.loadPercentage);
+    const loadPercentage = apiLoadPercentage ?? (
+      current !== null && nominalCurrent !== null && nominalCurrent > 0
+        ? roundToTwo((current / nominalCurrent) * 100)
+        : null
+    );
     const hours = roundToTwo(motor?.hours);
     const fault = roundToTwo(motor?.fault);
     const status = roundToTwo(motor?.status);
@@ -210,13 +217,13 @@ const mapMotors = (payload) => {
       status: motorStatus,
       horimetro: hours,
       corrente: current,
-      cargaEstimada: null,
+      cargaEstimada: loadPercentage,
       alarme: motorStatus === 'falha'
         ? 'Falha sinalizada pelo CLP'
         : motorStatus === 'indisponivel' ? 'Leitura indisponível' : 'OK',
       potenciaNominal: null,
       categoria: motor?.category || null,
-      correnteNominal: roundToTwo(motor?.nominalCurrent),
+      correnteNominal: nominalCurrent,
       possuiInversor: Boolean(motor?.hasInverter),
     };
   });
